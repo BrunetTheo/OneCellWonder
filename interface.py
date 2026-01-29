@@ -34,7 +34,7 @@ def main():
     screen = pygame.display.set_mode(windows_size)
     pygame.display.set_caption("my beautiful window that will hopefully work one day")
     running = False
-    matrix = np.random.randint(0,2,size=(50, 50))
+    matrix = np.random.randint(0,2,size=(20, 20))
     color = [(0,0,0), (255, 255, 255)]
     cell_size = ((windows_size[0]) / (3.5 * matrix.shape[0]))*0.98
     clock = pygame.time.Clock()
@@ -92,14 +92,16 @@ def main():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE: # Start/ stop
                     running = not running
-                if event.key == pygame.K_RIGHT:
+                elif event.key == pygame.K_RIGHT:
                     matrix = step(matrix)
                     iteration_counter += 1
                     matrix_history.append(matrix)
-                if event.key == pygame.K_LEFT:
+                elif event.key == pygame.K_LEFT:
                     iteration_counter -= 1
                     matrix = matrix_history[iteration_counter]
                     matrix_history = matrix_history[:-1]
+                elif event.key == pygame.K_c: # Clear the board
+                    matrix.fill(0)
 
         
         if running:
