@@ -7,6 +7,7 @@ class AndRule:
     positive_genes : np.array
     negative_genes  : np.array
     n_neighboor : int
+    propagation : int
     
 
 class CellGrid:
