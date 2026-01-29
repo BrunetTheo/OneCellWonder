@@ -34,9 +34,9 @@ def main():
     screen = pygame.display.set_mode(windows_size)
     pygame.display.set_caption("my beautiful window that will hopefully work one day")
     running = False
-    matrix = np.random.randint(0,2,size=(500, 500))
+    matrix = np.random.randint(0,2,size=(50, 50))
     color = [(0,0,0), (255, 255, 255)]
-    cell_size = (windows_size[0] - 50) / (3.5 * matrix.shape[0])
+    cell_size = ((windows_size[0]) / (3.5 * matrix.shape[0]))*0.98
     clock = pygame.time.Clock()
     iteration_counter = 0
     matrix_history = []
@@ -59,7 +59,7 @@ def main():
         screen.fill((20, 20, 20))
         width = math.sqrt(3) * cell_size
         height = cell_size
-        initial_center = [25,25]
+        initial_center = [2*cell_size,2*cell_size]
         center = initial_center.copy()
         for i in range(matrix.shape[1]):
             j=0
@@ -108,6 +108,7 @@ def main():
             matrix_history.append(matrix)
         
         draw_grid()
+        clock.tick(60)
 
 if __name__ == "__main__":
     main()
