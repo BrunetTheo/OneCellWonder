@@ -1,25 +1,18 @@
 import numpy as np
 
 class CellGrid:
-    def __init__(self, coords, neighbors, genes, gene_names):
+    def __init__(self, alive_grid, gene_grid):
         """
-        N: Number of cells on grid 
+        C: Number of Cells
         G: Number of genes
-        coords: np.array [N,2] of x,y positions
-        neighbors: np.array [N] number of neighbors per cell
-        genes: np.array [N,G] boolean matrix for gene presence
-        gene_names: list of gene names corresponding to columns of genes
+        alive_grid: np.array [grid dimension]
+        gene_grid: np.array [G x C]
         """
-        self.coords = coords
-        self.neighbors = neighbors
-        self.genes = genes
-        self.gene_names = gene_names
-        # Map gene name -> column index for convenience
-        self.gene_idx = {name: i for i, name in enumerate(gene_names)}
+        self.alive_grid = alive_grid
+        self.gene_grid = gene_grid
 
-    def get_coords(self, grid):
-        """Return coordinates of all cells or selected cells. Implies whether a cell is dead or alive"""
-        
+    def get_coords(self):
+        """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
        
     def get_genes(self, cell_indices=None):
@@ -29,4 +22,6 @@ class CellGrid:
 
     def match_rule(self, rule):
         """matches the rules to cell status """
+        pass
+    def update_grid(self):
         pass
