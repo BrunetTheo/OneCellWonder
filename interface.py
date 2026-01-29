@@ -1,14 +1,8 @@
 import pygame
 import numpy as np
 import math
-from dataclasses import dataclass
 
-@dataclass
-class Config: # Basic param for the screen / game
-    cell_size = 10
-    grid_w = 30
-    grid_h = 30
-    debug = False
+windows_size = (800, 800)
 
 def polygon_points(center, size):
     height = size
@@ -23,35 +17,31 @@ def polygon_points(center, size):
 
 
 def main():
-    cfg = Config()
     pygame.init()
-    screen = pygame.display.set_mode((cfg.grid_w * 3*cfg.cell_size + 2*cfg.cell_size, cfg.grid_h * 2 * math.sqrt(3)*cfg.cell_size))
+    screen = pygame.display.set_mode(windows_size)
     pygame.display.set_caption("my beautiful window that will hopefully work one day")
     running = False
-    matrix = np.random.randint(0,2,size=(cfg.grid_w, cfg.grid_h))
+    matrix = np.random.randint(0,2,size=(50, 50))
     color = [(0,0,0), (255, 255, 255)]
-
-    def debug(txt):
-        if cfg.debug:
-            print(txt)
+    cell_size = (windows_size[0] - 50) / (3.5 * matrix.shape[0])
 
     def draw_polygon(center, color):
         pygame.draw.polygon(
             screen,
             color,
-            polygon_points(center, cfg.cell_size)
+            polygon_points(center, cell_size)
         )
         pygame.draw.polygon(
             screen,
             (255, 255, 255),
-            polygon_points(center, cfg.cell_size),
+            polygon_points(center, cell_size),
             width=1
         )
 
     def draw_grid():
         screen.fill((20, 20, 20))
-        width = math.sqrt(3) * cfg.cell_size
-        height = cfg.cell_size
+        width = math.sqrt(3) * cell_size
+        height = cell_size
         initial_center = [25,25]
         center = initial_center.copy()
         for i in range(matrix.shape[1]):
