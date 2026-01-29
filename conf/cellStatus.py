@@ -1,4 +1,13 @@
 import numpy as np
+from dataclasses import dataclass
+
+
+@dataclass
+class AndRule:
+    positive_genes : np.array
+    negative_genes  : np.array
+    n_neighboor : int
+    
 
 class CellGrid:
     def __init__(self, alive_grid, gene_grid):
@@ -51,8 +60,14 @@ class CellGrid:
 
     def match_rules(self, rules):
         """matches the rules to cell status """
-        for rule in rules
-        pass
+        if rules != []:
+            rule = rules[0]
+            init = self.validate_rule(rule.positive_genes,rule.negative_genes,rule.n_neighboor)
+            for rule in rules[1:]:
+                init *= self.validate_rule(rule.positive_genes,rule.negative_genes,rule.n_neighboor)
+            return  np.zeros_like(self.gene_grid[:,:,0],dtype=bool)
+        else:
+            return 
     def update_grid(self):
         pass
 
