@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
 from .parse_rules import AndRule
-
+import utils as utils
 
 @dataclass
 class Cell:
@@ -80,11 +80,14 @@ class CellGrid:
         rows, cols = np.where(rule_applied_grid == 1)
         #get mask
         for r, c in zip(rows, cols):
-            #check even or odd
-            #mask = get_mask()
+            #check if y-coordinate is even or odd
+            if c % 2 == 0:
+                mask = utils.makeMask(True, affected_neighborhood)
+            else:
+                mask = utils.makeMask(False, affected_neighborhood)
             # apply mask
-            pass
-            
+            gene_grid[:, :, gene_idx][mask == 1] = 1
+        return gene_grid
 
     
 

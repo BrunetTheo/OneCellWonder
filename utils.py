@@ -2,7 +2,6 @@ import numpy as np
 import math
 from scipy.signal import convolve2d
 
-
 def makeMask(iseven,n):
     """
     Create a mask of size n
@@ -10,8 +9,8 @@ def makeMask(iseven,n):
     iseven (bool): if the center of the mask is on an even x or not
     n (int):  of the neighbourhood 
     """
-    meven=np.array([[1,1,1],[1,2,1],[0,1,0]])
-    modd = np.array([[0,1,0],[1,2,1],[1,1,1]])
+    meven=np.array([[1,1,1],[1,0,1],[0,1,0]])
+    modd = np.array([[0,1,0],[1,0,1],[1,1,1]])
     mask = np.zeros((n*2+1,n*2+1))
     mask[n,n] = 1
     for i in range(n):
