@@ -11,6 +11,7 @@ def makeMask(iseven,n):
     """
     meven=np.array([[1,1,1],[1,0,1],[0,1,0]])
     modd = np.array([[0,1,0],[1,0,1],[1,1,1]])
+    
     mask = np.zeros((n*2+1,n*2+1))
     mask[n,n] = 1
     for i in range(n):

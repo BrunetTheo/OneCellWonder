@@ -9,7 +9,7 @@ class Controller:
         self.rulesFile = rulesFile
         self.show = -1
         self.cellGrid = cellStatus.initialise_grid(self.rulesFile,self.configFile,x,y)
-        self.interfce = interface.Interface((1000,1000),self)
+        self.interfce = interface.Interface((800,800),self)
     
     def update(self):
         self.cellGrid.update_grid()

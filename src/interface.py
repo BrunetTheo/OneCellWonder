@@ -30,25 +30,22 @@ class Interface:
         )
 
     def draw_grid(self):
-        self.screen.fill((20, 20, 20))
+        self.screen.fill((10, 10, 10))
         width = math.sqrt(3) * self.cell_size
         height = self.cell_size
         initial_center = [2*self.cell_size,2*self.cell_size]
         center = initial_center.copy()
-        for i in range(self.matrix.shape[1]):
-            j=0
-            self.draw_polygon(center, self.color[self.matrix[i, j]])
-            for j in range(self.matrix.shape[0]-1):
+        for i in range(self.matrix.shape[0]):
+            for j in range(self.matrix.shape[1]):
+                self.draw_polygon([center[0], center[1]], self.color[self.matrix[i, j]])
                 if j % 2 == 0:
-                    center[0] += 3 * height
                     center[1] += width
-                    self.draw_polygon([center[0], center[1]], self.color[self.matrix[i, j]])
                 else:
-                    center[0] += 3 * height
                     center[1] -= width
-                    self.draw_polygon([center[0], center[1]], self.color[self.matrix[i, j]])
+                center[0] += 3 * height
+
             center[0] = initial_center[0]
-            center[1] = i * 2 * width + initial_center[1]
+            center[1] = (i+1) * 2 * width + initial_center[1]
         text = self.font.render(f'Iteration {self.iteration_counter}', True, (255,255,255))
         textRect = text.get_rect()
         textRect.bottomright = self.windows_size
@@ -68,15 +65,16 @@ class Interface:
         pygame.display.set_caption("Lizard")
         running = False
         self.matrix = self.controler.getGrid()
-        self.color = [(0,0,0), (255, 255, 255)]
-        self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.98
+        self.color = [(0,0,0), (255, 255, 255),(0,0,255)]
+        self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.9
         clock = pygame.time.Clock()
         self.iteration_counter = 0
         self.matrix_history = []
         self.font = pygame.font.Font('freesansbold.ttf', 24)
+        print(self.matrix.shape)
+        print(self.matrix)
 
         self.matrix_history.append(self.matrix)
-
         # Main loop
         while True:
             for event in pygame.event.get():
@@ -128,6 +126,6 @@ class Interface:
                 self.matrix = self.controler.getGrid()
                 self.iteration_counter += 1
                 self.matrix_history.append(self.matrix)
-            
+
             self.draw_grid()
             clock.tick(60)

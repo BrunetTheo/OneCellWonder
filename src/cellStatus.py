@@ -23,6 +23,12 @@ def initialise_grid(name_file_rules,name_file_cell,X=5,Y=5,G=100):
                 \n\tgene-:{' ; '.join(i.negative_genes.astype(str))}\
                 \n\tn_neighboor: {i.n_neighboor}\
                 \n\tpropagation: {i.propagation}\n")
+    for i in alive_rules:
+        print(f"Rules for cells:\
+                \n\tgene+:{' ; '.join(i.positive_genes.astype(str))}\
+                \n\tgene-:{' ; '.join(i.negative_genes.astype(str))}\
+                \n\tn_neighboor: {i.n_neighboor}\
+                \n\tpropagation: {i.propagation}\n")
         
     initial_cells = parse_cell_conf(name_file_cell)
     for i in initial_cells:
@@ -100,8 +106,8 @@ class CellGrid:
         
         n (int): number of wanted  
         """
-        maskEven = utils.makeMask(True,n)        
-        maskOdd = utils.makeMask(False,n)        
+        maskEven = utils.makeMask(False,n)        
+        maskOdd = utils.makeMask(True,n)        
         
         to_int = np.array(self.cell_status,dtype=int)
         out_even = convolve2d(to_int, maskEven, mode="same")
@@ -114,17 +120,15 @@ class CellGrid:
         return neighbors
         
     def neigboor_mask(self,applicable,n):
-        maskEven = utils.makeMask(True,n)        
-        maskOdd = utils.makeMask(False,n)        
+        maskEven = utils.makeMask(False,n)        
+        maskOdd = utils.makeMask(True,n)        
         maskEven[n,n] = 1
         maskOdd[n,n] = 1
         out_even = convolve2d(applicable, maskEven, mode="same")
         out_odd  = convolve2d(applicable, maskOdd,  mode="same")
-
-        cols = np.arange(self.cell_status.shape[0])[None, :]
+        cols = np.arange(applicable.shape[0])[None,:]
         evenCols = (cols % 2 == 0)
-        
-        neighbors = np.where(evenCols,out_even , out_odd) 
+        neighbors = np.where(evenCols,out_even , out_odd)
         return np.array(neighbors,dtype=bool)
 
         
@@ -202,7 +206,6 @@ class CellGrid:
             applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
-             
             extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
             new_genes[:,:,rule.active_gene] = extent   # Removed the OR rule to allow a gene to be removed if the rule is not valid anymore
 
@@ -221,11 +224,11 @@ class CellGrid:
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
             if len(self.alive_rules ) > 1:
-                rule = self.alive_rules[1]
-
-                new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
-                                                            neighboor_grid=neighboor_grid,
-                                                            n_neighboor = rule.n_neighboor)
+                for i in range(1,len(self.alive_rules)):
+                    rule = self.alive_rules[i]
+                    new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
+                                                                neighboor_grid=neighboor_grid,
+                                                                n_neighboor = rule.n_neighboor)
         
         # remove allready alive
 
