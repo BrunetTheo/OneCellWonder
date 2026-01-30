@@ -73,6 +73,8 @@ class CellGrid:
             for gene in genes:
                     self.gene_content[x, y, gene] = 1
 
+        self.propagate_genes()
+
 
     def _in_bounds(self, x, y):
         return 0 <= x < self.X and 0 <= y < self.Y
