@@ -88,7 +88,8 @@ class Interface:
                     if event.key == pygame.K_SPACE: # Start/ stop
                         running = not running
                     elif event.key == pygame.K_RIGHT:
-                        self.matrix = step(self.matrix)
+                        self.controler.update()
+                        self.matrix = self.controler.getGrid()
                         self.iteration_counter += 1
                         self.matrix_history.append(self.matrix)
                     elif event.key == pygame.K_LEFT:
