@@ -2,6 +2,7 @@ import numpy as np
 from dataclasses import dataclass
 from .parse_rules import AndRule
 import utils as utils
+import copy
 
 @dataclass
 class Cell:
@@ -15,11 +16,6 @@ def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
     initial_cells = read_cell_file(name_file_cell)
     return CellGrid(X=20,Y=50,G=3,rules=genes_rules,initial_cells=initial_cells)
 
-
-def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
-    rules = read_rules_file(name_file_rules)
-    initial_cells = read_cell_file(name_file_cell)
-    return CellGrid(X=20,Y=50,G=3,rules=rules,initial_cells=initial_cells)
 
 
 class CellGrid:
@@ -51,7 +47,7 @@ class CellGrid:
         self.alive_rules = alive_rules
 
         # 1️⃣ Cellules vivantes / mortes
-        self.cell_status = np.zeros((X, Y), dtype=int)
+        self.cell_status = np.zeros((X, Y), dtype=bool)
 
         # 2️⃣ Contenu génétique
         self.gene_content = np.zeros((X, Y, G), dtype=int)
@@ -127,7 +123,7 @@ class CellGrid:
         """Returns set of active genes per cell"""
         pass
     
-    def validate_rule(self,positive_genes,negative_genes,n_neighboor=None):
+    def validate_rule(self,positive_genes,negative_genes,neighboor_grid,n_neighboor=None):
         """ Check If a rule return true
         
         positive_genes = numpy array or gene that must be present e.g [1] when the second gene need to be there
@@ -137,22 +133,22 @@ class CellGrid:
 
         n_positive = len(positive_genes)
         if n_positive != 0:
-            positive_gene_validation = np.sum(self.gene_grid[:,:,positive_genes],axis=-1) == n_positive
+            positive_gene_validation = np.sum(self.gene_content[:,:,positive_genes],axis=-1) == n_positive
         else:
-            positive_gene_validation = np.ones_like(self.gene_grid[:,:,0],dtype=bool)
+            positive_gene_validation = np.ones_like(self.gene_content[:,:,0],dtype=bool)
 
         n_negative = len(negative_genes)
         if n_negative != 0:
 
-            negative_gene_validation = np.sum(1-self.gene_grid[:,:,negative_genes],axis=-1) == n_negative
+            negative_gene_validation = np.sum(1-self.gene_content[:,:,negative_genes],axis=-1) == n_negative
         else:
-            negative_gene_validation = np.ones_like(self.gene_grid[:,:,0],dtype=bool)
+            negative_gene_validation = np.ones_like(self.gene_content[:,:,0],dtype=bool)
 
 
         gene_validation = positive_gene_validation * negative_gene_validation
 
         if n_neighboor != None:
-            gene_validation = gene_validation * (n_neighboor == self.get_n_neighboor())
+            gene_validation = gene_validation * (n_neighboor == neighboor_grid)
         
         return gene_validation
 
@@ -168,10 +164,45 @@ class CellGrid:
         else:
             return 
     def update_grid(self):
-        pass
+
+        #compute N neighboor once:
+        neighboor_grid = self.get_n_neighboor()
+
+        # First find potential new cells
+        if len(self.alive_rules) >= 1:
+            rule = self.alive_rules[0]
+            new_alive = self.validate_rule(rule.positive_genes,rule.negative_genes,
+                                           neighboor_grid=neighboor_grid,
+                                           n_neighboor = rule.n_neighboor)
+            if len(self.alive_rules ) > 1:
+                rule = self.alive_rules[1]
+
+                new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
+                                                            neighboor_grid=neighboor_grid,
+                                                            n_neighboor = rule.n_neighboor)
+        
+        # remove allready alive
+
+        new_alive = new_alive * (~self.cell_status)
+
+        self.cell_status = self.cell_status | new_alive
+
+        neighboor_grid = self.get_n_neighboor()
+
+
+        new_genes = copy.deepcpoy(self.gene_content)
+        for rule in self.genes_rules:
+            applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
+                                           neighboor_grid=neighboor_grid,
+                                           n_neighboor = rule.n_neighboor)
+             
+            extent = 
+             new_genes
+
+            #where the rules apply
+
+
+        
 
 
 
-
-1,2,[0,3]   # Cell(1,2,[0,3])
-3,2,[1]
