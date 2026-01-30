@@ -1,6 +1,8 @@
 import numpy as np
 from dataclasses import dataclass
-from .parse_rules import AndRule
+from parse_rules import AndRule
+from scipy.signal import convolve2d
+
 import utils as utils
 import copy
 
@@ -93,7 +95,7 @@ class CellGrid:
         out_even = convolve2d(self.cell_status, maskEven, mode="same")
         out_odd  = convolve2d(self.cell_status, maskOdd,  mode="same")
 
-        cols = np.arange(mask.shape[0])[None, :]
+        cols = np.arange(self.cell_status.shape[0])[None, :]
         evenCols = (cols % 2 == 0)
 
         neighbors = np.where(evenCols, out_even, out_odd) 

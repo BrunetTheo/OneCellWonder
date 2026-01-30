@@ -26,4 +26,5 @@ def makeMask(iseven,n):
 
         mask = np.where(mask_even, out_even, out_odd) 
     mask = mask>0
+    mask[n,n] = 0 #Remove the original cell
     return mask
