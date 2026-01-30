@@ -204,7 +204,7 @@ class CellGrid:
                                            n_neighboor = rule.n_neighboor)
              
             extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
-            new_genes[:,:,rule.active_gene] = new_genes[:,:,rule.active_gene] | extent
+            new_genes[:,:,rule.active_gene] = extent   # Removed the OR rule to allow a gene to be removed if the rule is not valid anymore
 
         self.gene_content = new_genes
 

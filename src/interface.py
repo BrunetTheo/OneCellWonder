@@ -24,7 +24,7 @@ class Interface:
         )
         pygame.draw.polygon(
             self.screen,
-            (255, 255, 255),
+            (0, 255, 0),
             self.polygon_points(center, self.cell_size),
             width=1
         )
@@ -96,13 +96,30 @@ class Interface:
                         self.iteration_counter -= 1
                         self.matrix = self.matrix_history[self.iteration_counter]
                         self.matrix_history = self.matrix_history[:-1]
-                    elif event.key == pygame.K_a: # Clear the board
+                    
+                    elif event.key == pygame.K_a: 
                         self.controler.show = 0
                         self.matrix = self.controler.getGrid()
-                    elif event.key == pygame.K_z: # Clear the board
+                    elif event.key == pygame.K_z: 
                         self.controler.show = 1
                         self.matrix = self.controler.getGrid()
-                    elif event.key == pygame.K_r: # Clear the board
+                    elif event.key == pygame.K_e: 
+                        self.controler.show = 2
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_r: 
+                        self.controler.show = 3
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_t: 
+                        self.controler.show = 4
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_y: 
+                        self.controler.show = 5
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_u: 
+                        self.controler.show = 6
+                        self.matrix = self.controler.getGrid()
+                    
+                    elif event.key == pygame.K_w: 
                         self.controler.show = -1
                         self.matrix = self.controler.getGrid()
             

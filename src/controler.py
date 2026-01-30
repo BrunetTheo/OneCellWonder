@@ -17,10 +17,8 @@ class Controller:
     def getGrid(self):
         if self.show == -1:
             return self.cellGrid.getCellStatus().astype(int)
-        if self.show == 0:
-            return (self.cellGrid.gene_content[:,:,0]>1).astype(int)
-        if self.show == 1:
-            return (self.cellGrid.gene_content[:,:,1]>1).astype(int)
-
+        else:
+            return self.cellGrid.gene_content[:,:,self.show]
+        
 if __name__ == "__main__":
-    c = Controller(100,100,"../confs/periodic/exempleCellConfig.txt","../confs/periodic/rules.txt")
+    c = Controller(5,5,"../confs/periodic/exempleCellConfig.txt","../confs/periodic/rules.txt")
