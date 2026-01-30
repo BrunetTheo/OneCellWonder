@@ -71,7 +71,7 @@ class CellGrid:
                     self.cell_status[x, y] = 1
 
                 genes = cell.active_genes
-                for gene in genes
+            for gene in genes:
                     self.gene_content[x, y, gene] = 1
 
 
