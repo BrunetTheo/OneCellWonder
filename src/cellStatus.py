@@ -116,7 +116,7 @@ class CellGrid:
             else:
                 mask = utils.makeMask(False, affected_neighborhood)
             # apply mask
-            gene_grid[:, :, gene_idx][mask == 1] = 1
+            gene_grid[r, c, gene_idx][mask == 1] = 1
         return gene_grid
 
     
