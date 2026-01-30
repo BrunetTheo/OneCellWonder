@@ -11,9 +11,11 @@ class Controller:
         self.cellGrid = cellStatus.initialise_grid(self.rulesFile,self.configFile,x,y)
         self.interfce = interface.Interface((1000,1000),self)
     
+    def update(self):
+        self.cellGrid.update_grid()
     
     def getGrid(self):
         return self.cellGrid.getCellStatus()
 
 if __name__ == "__main__":
-    c = Controller(15,15,"../confs/periodic/exempleCellConfig.txt","../confs/periodic/rules.txt")
+    c = Controller(100,100,"../confs/periodic/exempleCellConfig.txt","../confs/periodic/rules.txt")
