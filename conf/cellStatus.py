@@ -11,14 +11,14 @@ class Cell:
     
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
-    rules = read_rules_file(name_file_rules)
+    genes_rules,alive_rules = read_rules_file(name_file_rules)
     initial_cells = read_cell_file(name_file_cell)
-    return CellGrid(X=20,Y=50,G=3,rules=rules,initial_cells=initial_cells)
+    return CellGrid(X=20,Y=50,G=3,rules=genes_rules,initial_cells=initial_cells)
 
 
 class CellGrid:
 
-    def __init__(self, X, Y, G, rules,initial_cells=None, gene_names=None):
+    def __init__(self, X, Y, G, genes_rules,alive_rules,initial_cells=None, gene_names=None):
         """
         Grille spatiale de cellules avec contenu génétique.
 
@@ -41,7 +41,8 @@ class CellGrid:
         self.X = X
         self.Y = Y
         self.G = G
-        self.rules = rules
+        self.genes_rules = genes_rules
+        self.alive_rules = alive_rules
 
         # 1️⃣ Cellules vivantes / mortes
         self.cell_status = np.zeros((X, Y), dtype=int)
