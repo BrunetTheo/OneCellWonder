@@ -1,25 +1,70 @@
 import numpy as np
 from dataclasses import dataclass
+from .parse_rules import AndRule
 
 
 @dataclass
-class AndRule:
-    positive_genes : np.array
-    negative_genes  : np.array
-    n_neighboor : int
-    propagation : int
+class Cell:
+    x: int
+    y: int
+    active_genes: np.array
     
 
 class CellGrid:
-    def __init__(self, state_grid, gene_grid):
+
+    def __init__(self, X, Y, G, initial_cells=None, gene_names=None):
         """
-        C: Number of Cells
-        G: Number of genes
-        alive_grid: np.array [grid dimension]
-        gene_grid: np.array [W x L x G]
+        Grille spatiale de cellules avec contenu génétique.
+
+        Paramètres
+        ----------
+        X : int
+            Taille spatiale en x
+        Y : int
+            Taille spatiale en y
+        G : int
+            Nombre de gènes
+        initial_cells : list of tuples (x,y), optionnel
+            Positions initiales des cellules vivantes
+        initial_genes : list of tuples (x,y,g), optionnel
+            Gènes présents initialement dans les cellules
+        gene_names : list of str, optionnel
+            Noms des gènes
         """
-        self.state_grid = state_grid
-        self.gene_grid = gene_grid
+
+        self.X = X
+        self.Y = Y
+        self.G = G
+
+        # 1️⃣ Cellules vivantes / mortes
+        self.cell_status = np.zeros((X, Y), dtype=int)
+
+        # 2️⃣ Contenu génétique
+        self.gene_content = np.zeros((X, Y, G), dtype=int)
+
+        # Noms des gènes
+        if gene_names is None:
+            self.gene_names = [f"gene_{i}" for i in range(G)]
+        else:
+            if len(gene_names) != G:
+                raise ValueError("gene_names doit être de longueur G")
+            self.gene_names = gene_names
+
+        # Initialisation des cellules vivantes
+        if initial_cells is not None:
+            for cell in initial_cells:
+                x, y = cell.x,cell.y
+                if self._in_bounds(x, y):
+                    self.cell_status[x, y] = 1
+
+                genes = cell.active_genes
+                for gene in genes
+                    self.gene_content[x, y, gene] = 1
+
+
+    def _in_bounds(self, x, y):
+        return 0 <= x < self.X and 0 <= y < self.Y
+
 
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
@@ -93,3 +138,6 @@ class CellGrid:
 
 
 
+
+1,2,[0,3]   # Cell(1,2,[0,3])
+3,2,[1]
