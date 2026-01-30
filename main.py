@@ -17,8 +17,13 @@ def main():
         sys.exit(1)
 
     # Check for required files
-    rules_file = folder / "rules.txt"
-    initial_file = folder / "initial_cell.txt"
+    tryFiles = True #usage of non default files
+    if tryFiles == True:
+        rules_file = folder / "rules.txt"
+        initial_file = folder / "exempleCellConfig.txt"
+    else:
+        rules_file = folder / "rules.txt"
+        initial_file = folder / "initial_cell.txt"
     
     missing_files = [f.name for f in (rules_file, initial_file) if not f.exists()]
     if missing_files:
@@ -26,5 +31,6 @@ def main():
         sys.exit(1)
     
     c = Controller(100,100,initial_file, rules_file)
+    
 if __name__ == '__main__':
     main()

@@ -13,7 +13,7 @@ class Cell:
     active_genes: np.array
     
 
-def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
+def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
     initial_cells = parse_cell_conf(name_file_cell)
     return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
