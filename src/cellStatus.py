@@ -2,7 +2,8 @@ import numpy as np
 from dataclasses import dataclass
 from src.parse_rules import AndRule
 from scipy.signal import convolve2d
-
+from parse_rules import *
+from parse_cells import *
 import utils as utils
 import copy
 
@@ -15,9 +16,14 @@ class Cell:
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
+<<<<<<< HEAD
     initial_cells = read_cell_file(name_file_cell)
     return CellGrid(X=20,Y=50,G=3,rules=genes_rules,initial_cells=initial_cells)
 
+=======
+    initial_cells = parse_cell_conf(name_file_cell)
+    return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
+>>>>>>> 13fa6bb670c985b05d9b7659448af44f879860b9
 
 
 class CellGrid:
@@ -73,9 +79,15 @@ class CellGrid:
             for gene in genes:
                     self.gene_content[x, y, gene] = 1
 
+<<<<<<< HEAD
         self.propagate_genes()
 
 
+=======
+    def getCellStatus(self):
+        return self.cell_status
+    
+>>>>>>> 13fa6bb670c985b05d9b7659448af44f879860b9
     def _in_bounds(self, x, y):
         return 0 <= x < self.X and 0 <= y < self.Y
 
@@ -131,7 +143,7 @@ class CellGrid:
             else:
                 mask = utils.makeMask(False, affected_neighborhood)
             # apply mask
-            gene_grid[:, :, gene_idx][mask == 1] = 1
+            gene_grid[r, c, gene_idx][mask == 1] = 1
         return gene_grid
 
     
