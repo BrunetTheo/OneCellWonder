@@ -82,9 +82,26 @@ class CellGrid:
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
-    def get_neighbors(self):
-        pass 
-    
+    def get_neighbors(self,n):
+        """
+        Docstring for get_neighbors
+        
+        n (int): number of wanted  
+        """
+        maskEven = utils.makeMask(True,n)        
+        maskOdd = utils.makeMask(False,n)        
+        
+        
+        out_even = convolve2d(self.cell_status, maskEven, mode="same")
+        out_odd  = convolve2d(self.cell_status, maskOdd,  mode="same")
+
+        cols = np.arange(mask.shape[0])[None, :]
+        evenCols = (cols % 2 == 0)
+
+        neighbors = np.where(evenCols, out_even, out_odd) 
+        return neighbors
+        
+        
     
     def apply_neighborhoodmask(self, gene_grid, rule_applied_grid, affected_neighborhood, gene_idx):
         """based on the affected_neighborhood, it creates a mask of size affected_neighborhood, 
