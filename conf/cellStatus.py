@@ -13,9 +13,9 @@ class Cell:
     
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
-    rules = read_rules_file(name_file_rules)
+    genes_rules,alive_rules = read_rules_file(name_file_rules)
     initial_cells = read_cell_file(name_file_cell)
-    return CellGrid(X=20,Y=50,G=3,rules=rules,initial_cells=initial_cells)
+    return CellGrid(X=20,Y=50,G=3,rules=genes_rules,initial_cells=initial_cells)
 
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
@@ -26,7 +26,7 @@ def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
 
 class CellGrid:
 
-    def __init__(self, X, Y, G, rules,initial_cells=None, gene_names=None):
+    def __init__(self, X, Y, G, genes_rules,alive_rules,initial_cells=None, gene_names=None):
         """
         Grille spatiale de cellules avec contenu génétique.
 
@@ -49,7 +49,8 @@ class CellGrid:
         self.X = X
         self.Y = Y
         self.G = G
-        self.rules = rules
+        self.genes_rules = genes_rules
+        self.alive_rules = alive_rules
 
         # 1️⃣ Cellules vivantes / mortes
         self.cell_status = np.zeros((X, Y), dtype=int)
@@ -73,7 +74,11 @@ class CellGrid:
                     self.cell_status[x, y] = 1
 
                 genes = cell.active_genes
+<<<<<<< HEAD
                 for gene in genes:
+=======
+            for gene in genes:
+>>>>>>> a6f1b885a8fd91068eb8a7c18d0fee231893e305
                     self.gene_content[x, y, gene] = 1
 
 
@@ -84,7 +89,11 @@ class CellGrid:
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> a6f1b885a8fd91068eb8a7c18d0fee231893e305
     def get_neighbors(self,n):
         """
         Docstring for get_neighbors
@@ -107,9 +116,8 @@ class CellGrid:
         
     
     def apply_neighborhoodmask(self, gene_grid, rule_applied_grid, affected_neighborhood, gene_idx):
-        """based on the affected_neighborhood, it creates a mask of size affected_neighborhood, 
-        and adds applies the mask to the origin of signal, which is indicated in rule_applied_grid rule_applied_grid: 
-        matrix of coordinates that tells you where signal origin lies"""
+        """based on the affected_neighborhood, it creates a mask with radius affected_neighborhood, 
+        and applies the mask to the origin of signal (found in rule_applied_grid)."""
         rows, cols = np.where(rule_applied_grid == 1)
         #get mask
         for r, c in zip(rows, cols):
