@@ -100,6 +100,7 @@ class Interface:
 
             
             if running:
+                self.controler.update()
                 self.matrix = self.controler.getGrid()
                 self.iteration_counter += 1
                 self.matrix_history.append(self.matrix)

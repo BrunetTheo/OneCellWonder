@@ -231,7 +231,6 @@ class CellGrid:
     def update_grid(self):
 
         #compute N neighboor once:
-      
         self.create_alive_cell()
         self.propagate_genes()
        
