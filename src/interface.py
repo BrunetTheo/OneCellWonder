@@ -67,7 +67,7 @@ class Interface:
         self.screen = pygame.display.set_mode(windows_size)
         pygame.display.set_caption("Lizard")
         running = False
-        self.matrix = np.random.randint(0,2,size=(20, 20))
+        self.matrix = self.controler.getGrid()
         self.color = [(0,0,0), (255, 255, 255)]
         self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.98
         clock = pygame.time.Clock()
