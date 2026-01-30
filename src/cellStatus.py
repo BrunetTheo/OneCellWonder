@@ -230,8 +230,8 @@ class CellGrid:
 
         #compute N neighboor once:
       
-        self.create_alive_cell(self)
-        self.propagate_genes(self)
+        self.create_alive_cell()
+        self.propagate_genes()
        
             #where the rules apply
 
