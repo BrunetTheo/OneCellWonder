@@ -32,15 +32,16 @@ class CellGrid:
         """based on the affected_neighborhood, it creates a mask of size affected_neighborhood, 
         and adds applies the mask to the origin of signal, which is indicated in rule_applied_grid rule_applied_grid: 
         matrix of coordinates that tells you where signal origin lies"""
-        rows, cols = gene_grid
-        mask = np.zeros(gene_grid, dtype= bool)
-
-        # use a mask per cell of origin
-            
+        rows, cols = np.where(rule_applied_grid == 1)
+        #get mask
+        for r, c in zip(rows, cols):
+            #check even or odd
+            #mask = get_mask()
+            # apply mask
+            pass
             
 
     
-
 
     
     def get_genes(self, cell_indices=None):
