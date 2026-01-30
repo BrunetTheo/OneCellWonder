@@ -2,9 +2,9 @@ import numpy as np
 from dataclasses import dataclass
 from src.parse_rules import AndRule
 from scipy.signal import convolve2d
-from src.parse_rules import *
-from src.parse_cells import *
-import src.utils as utils
+from parse_rules import *
+from parse_cells import *
+import utils as utils
 import copy
 
 @dataclass
@@ -14,9 +14,19 @@ class Cell:
     active_genes: np.array
     
 
-def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
+
+def initialise_grid(name_file_rules,name_file_cell,X=5,Y=5,G=100):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
+    for i in genes_rules:
+        print(f"Rules for gene {i.active_gene}:\
+                \n\tgene+:{' ; '.join(i.positive_genes.astype(str))}\
+                \n\tgene-:{' ; '.join(i.negative_genes.astype(str))}\
+                \n\tn_neighboor: {i.n_neighboor}\
+                \n\tpropagation: {i.propagation}\n")
+        
     initial_cells = parse_cell_conf(name_file_cell)
+    for i in initial_cells:
+        print(i.__dict__)
     return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
 
 
@@ -72,8 +82,6 @@ class CellGrid:
                 genes = cell.active_genes
                 for gene in genes:
                         self.gene_content[x, y, gene] = 1
-        
-        self.propagate_genes()
 
     def getCellStatus(self):
         return self.cell_status
@@ -108,15 +116,15 @@ class CellGrid:
     def neigboor_mask(self,applicable,n):
         maskEven = utils.makeMask(True,n)        
         maskOdd = utils.makeMask(False,n)        
-        
-        
+        maskEven[n,n] = 1
+        maskOdd[n,n] = 1
         out_even = convolve2d(applicable, maskEven, mode="same")
         out_odd  = convolve2d(applicable, maskOdd,  mode="same")
 
         cols = np.arange(self.cell_status.shape[0])[None, :]
         evenCols = (cols % 2 == 0)
-
-        neighbors = np.where(evenCols, out_even, out_odd) 
+        
+        neighbors = np.where(evenCols,out_even , out_odd) 
         return np.array(neighbors,dtype=bool)
 
         
@@ -188,19 +196,14 @@ class CellGrid:
         
 
     def propagate_genes(self):
-
         neighboor_grid = self.get_neighbors()
-
-
         new_genes = copy.deepcopy(self.gene_content)
         for rule in self.genes_rules:
             applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
              
-             
             extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
-
             new_genes[:,:,rule.active_gene] = new_genes[:,:,rule.active_gene] | extent
 
         self.gene_content = new_genes
@@ -230,14 +233,9 @@ class CellGrid:
 
         self.cell_status = self.cell_status | new_alive
 
-    def update_grid(self):
-
-        #compute N neighboor once:
-      
+    def update_grid(self):        
         self.create_alive_cell()
         self.propagate_genes()
-       
-            #where the rules apply
 
 
         
