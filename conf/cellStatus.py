@@ -1,7 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
-from .parse_rules import read_rules_file
-
+from .parse_rules import AndRule
+import utils as utils
 
 @dataclass
 class Cell:
@@ -14,6 +14,12 @@ def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
     initial_cells = read_cell_file(name_file_cell)
     return CellGrid(X=20,Y=50,G=3,rules=genes_rules,initial_cells=initial_cells)
+
+
+def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
+    rules = read_rules_file(name_file_rules)
+    initial_cells = read_cell_file(name_file_cell)
+    return CellGrid(X=20,Y=50,G=3,rules=rules,initial_cells=initial_cells)
 
 
 class CellGrid:
@@ -66,7 +72,7 @@ class CellGrid:
                     self.cell_status[x, y] = 1
 
                 genes = cell.active_genes
-                for gene in genes
+            for gene in genes:
                     self.gene_content[x, y, gene] = 1
 
 
@@ -77,23 +83,44 @@ class CellGrid:
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
-    def get_neighbors(self):
-        pass 
     
+    def get_neighbors(self,n):
+        """
+        Docstring for get_neighbors
+        
+        n (int): number of wanted  
+        """
+        maskEven = utils.makeMask(True,n)        
+        maskOdd = utils.makeMask(False,n)        
+        
+        
+        out_even = convolve2d(self.cell_status, maskEven, mode="same")
+        out_odd  = convolve2d(self.cell_status, maskOdd,  mode="same")
+
+        cols = np.arange(mask.shape[0])[None, :]
+        evenCols = (cols % 2 == 0)
+
+        neighbors = np.where(evenCols, out_even, out_odd) 
+        return neighbors
+        
+        
     
     def apply_neighborhoodmask(self, gene_grid, rule_applied_grid, affected_neighborhood, gene_idx):
-        """based on the affected_neighborhood, it creates a mask of size affected_neighborhood, 
-        and adds applies the mask to the origin of signal, which is indicated in rule_applied_grid rule_applied_grid: 
-        matrix of coordinates that tells you where signal origin lies"""
-        rows, cols = gene_grid
-        mask = np.zeros(gene_grid, dtype= bool)
-
-        # use a mask per cell of origin
-            
-            
+        """based on the affected_neighborhood, it creates a mask with radius affected_neighborhood, 
+        and applies the mask to the origin of signal (found in rule_applied_grid)."""
+        rows, cols = np.where(rule_applied_grid == 1)
+        #get mask
+        for r, c in zip(rows, cols):
+            #check if y-coordinate is even or odd
+            if c % 2 == 0:
+                mask = utils.makeMask(True, affected_neighborhood)
+            else:
+                mask = utils.makeMask(False, affected_neighborhood)
+            # apply mask
+            gene_grid[:, :, gene_idx][mask == 1] = 1
+        return gene_grid
 
     
-
 
     
     def get_genes(self, cell_indices=None):
