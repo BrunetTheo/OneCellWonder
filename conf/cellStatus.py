@@ -1,14 +1,7 @@
 import numpy as np
 from dataclasses import dataclass
+from .parse_rules import AndRule
 
-
-@dataclass
-class AndRule:
-    positive_genes : np.array
-    negative_genes  : np.array
-    n_neighboor : int
-    propagation : int
-    active_gene: int
 
 @dataclass
 class Cell:
@@ -66,7 +59,7 @@ class CellGrid:
 
                 genes = cell.active_genes
                 for gene in genes
-                    self.gene_content[x, y, g] = 1
+                    self.gene_content[x, y, gene] = 1
 
 
     def _in_bounds(self, x, y):
@@ -144,3 +137,6 @@ class CellGrid:
 
 
 
+
+1,2,[0,3]   # Cell(1,2,[0,3])
+3,2,[1]
