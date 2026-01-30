@@ -20,7 +20,7 @@ def main():
     tryFiles = True #usage of non default files
     if tryFiles == True:
         rules_file = folder / "rules.txt"
-        initial_file = folder / "exempleCellConfig.txt"
+        initial_file = folder / "initial_cell.txt"
     else:
         rules_file = folder / "rules.txt"
         initial_file = folder / "initial_cell.txt"

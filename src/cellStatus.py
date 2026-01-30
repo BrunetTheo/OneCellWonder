@@ -16,14 +16,8 @@ class Cell:
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
-<<<<<<< HEAD
-    initial_cells = read_cell_file(name_file_cell)
-    return CellGrid(X=20,Y=50,G=3,rules=genes_rules,initial_cells=initial_cells)
-
-=======
     initial_cells = parse_cell_conf(name_file_cell)
     return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
->>>>>>> 13fa6bb670c985b05d9b7659448af44f879860b9
 
 
 class CellGrid:
@@ -79,15 +73,9 @@ class CellGrid:
             for gene in genes:
                     self.gene_content[x, y, gene] = 1
 
-<<<<<<< HEAD
-        self.propagate_genes()
-
-
-=======
     def getCellStatus(self):
         return self.cell_status
     
->>>>>>> 13fa6bb670c985b05d9b7659448af44f879860b9
     def _in_bounds(self, x, y):
         return 0 <= x < self.X and 0 <= y < self.Y
 
