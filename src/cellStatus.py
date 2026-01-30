@@ -74,11 +74,7 @@ class CellGrid:
                     self.cell_status[x, y] = 1
 
                 genes = cell.active_genes
-<<<<<<< HEAD
-                for gene in genes:
-=======
             for gene in genes:
->>>>>>> a6f1b885a8fd91068eb8a7c18d0fee231893e305
                     self.gene_content[x, y, gene] = 1
 
 
@@ -89,11 +85,7 @@ class CellGrid:
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
-<<<<<<< HEAD
-
-=======
     
->>>>>>> a6f1b885a8fd91068eb8a7c18d0fee231893e305
     def get_neighbors(self,n):
         """
         Docstring for get_neighbors
