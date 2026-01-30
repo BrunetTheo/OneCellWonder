@@ -2,6 +2,10 @@ import argparse
 from pathlib import Path
 import sys
 
+src_path = Path(__file__).resolve().parent / "src"
+sys.path.append(str(src_path))
+from controler import Controller
+
 def main():
     parser = argparse.ArgumentParser( description = 'One Cell Wonder')
     parser.add_argument("folderpath", help="path to the folder with: rules.txt and initial_cell.txt")
@@ -21,5 +25,6 @@ def main():
         print(f"Error: The following required file(s) are missing: {', '.join(missing_files)}")
         sys.exit(1)
     
+    c = Controller(100,100,initial_file, rules_file)
 if __name__ == '__main__':
     main()
