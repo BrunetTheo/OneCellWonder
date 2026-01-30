@@ -72,6 +72,8 @@ class CellGrid:
                 genes = cell.active_genes
                 for gene in genes:
                         self.gene_content[x, y, gene] = 1
+        
+        self.propagate_genes()
 
     def getCellStatus(self):
         return self.cell_status

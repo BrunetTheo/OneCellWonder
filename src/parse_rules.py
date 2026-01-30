@@ -23,7 +23,7 @@ def parse_and_rule(rule_str: str, active_gene: int) -> AndRule:
         raise ValueError(f"Invalid rule format: {rule_str}")
 
     content, propagation = match.groups()
-    propagation = int(propagation) if propagation else 1
+    propagation = int(propagation) if propagation else 0
 
     positive = []
     negative = []
