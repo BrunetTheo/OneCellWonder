@@ -2,9 +2,9 @@ import numpy as np
 from dataclasses import dataclass
 from src.parse_rules import AndRule
 from scipy.signal import convolve2d
-from parse_rules import *
-from parse_cells import *
-import utils as utils
+from src.parse_rules import *
+from src.parse_cells import *
+import src.utils as utils
 import copy
 
 @dataclass
@@ -14,7 +14,7 @@ class Cell:
     active_genes: np.array
     
 
-def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
+def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
     initial_cells = parse_cell_conf(name_file_cell)
     return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
@@ -70,8 +70,8 @@ class CellGrid:
                     self.cell_status[x, y] = 1
 
                 genes = cell.active_genes
-            for gene in genes:
-                    self.gene_content[x, y, gene] = 1
+                for gene in genes:
+                        self.gene_content[x, y, gene] = 1
 
     def getCellStatus(self):
         return self.cell_status
@@ -231,6 +231,7 @@ class CellGrid:
     def update_grid(self):
 
         #compute N neighboor once:
+      
         self.create_alive_cell()
         self.propagate_genes()
        
