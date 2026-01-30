@@ -82,6 +82,7 @@ class CellGrid:
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
+    
     def get_neighbors(self,n):
         """
         Docstring for get_neighbors
@@ -104,9 +105,8 @@ class CellGrid:
         
     
     def apply_neighborhoodmask(self, gene_grid, rule_applied_grid, affected_neighborhood, gene_idx):
-        """based on the affected_neighborhood, it creates a mask of size affected_neighborhood, 
-        and adds applies the mask to the origin of signal, which is indicated in rule_applied_grid rule_applied_grid: 
-        matrix of coordinates that tells you where signal origin lies"""
+        """based on the affected_neighborhood, it creates a mask with radius affected_neighborhood, 
+        and applies the mask to the origin of signal (found in rule_applied_grid)."""
         rows, cols = np.where(rule_applied_grid == 1)
         #get mask
         for r, c in zip(rows, cols):
