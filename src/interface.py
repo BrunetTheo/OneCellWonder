@@ -96,9 +96,15 @@ class Interface:
                         self.iteration_counter -= 1
                         self.matrix = self.matrix_history[self.iteration_counter]
                         self.matrix_history = self.matrix_history[:-1]
-                    elif event.key == pygame.K_c: # Clear the board
-                        self.matrix.fill(0)
-
+                    elif event.key == pygame.K_a: # Clear the board
+                        self.controler.show = 0
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_z: # Clear the board
+                        self.controler.show = 1
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_r: # Clear the board
+                        self.controler.show = -1
+                        self.matrix = self.controler.getGrid()
             
             if running:
                 self.controler.update()
