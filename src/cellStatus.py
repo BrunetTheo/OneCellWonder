@@ -118,6 +118,11 @@ class CellGrid:
 
         neighbors = np.where(evenCols, out_even, out_odd) 
         return np.array(neighbors,dtype=bool)
+    
+
+    def inclusive_neigboor_mask(self,applicable,n):
+        return self.neigboor_mask(applicable,n) | applicable
+        
 
         
     
@@ -171,7 +176,7 @@ class CellGrid:
             gene_validation = gene_validation * (n_neighboor == neighboor_grid)
         else:
             #propagate on all cell adjacent to alive cell
-            potential_cell = self.neigboor_mask(np.array(self.cell_status,dtype=int),1)
+            potential_cell = self.inclusive_neigboor_mask(np.array(self.cell_status,dtype=int),1) 
             gene_validation =  gene_validation * potential_cell
         
         return gene_validation
@@ -200,8 +205,9 @@ class CellGrid:
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
              
-             
-            extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
+            applicable = applicable * self.cell_status
+            extent = self.inclusive_neigboor_mask(np.array(applicable,dtype=int),rule.propagation) 
+            
 
             new_genes[:,:,rule.active_gene] = new_genes[:,:,rule.active_gene] | extent
 
