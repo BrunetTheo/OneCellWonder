@@ -14,7 +14,7 @@ class Cell:
     active_genes: np.array
     
 
-def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=3):
+def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=5):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
     initial_cells = parse_cell_conf(name_file_cell)
     return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
@@ -170,7 +170,9 @@ class CellGrid:
         if n_neighboor != None:
             gene_validation = gene_validation * (n_neighboor == neighboor_grid)
         else:
-            gene_validation =  gene_validation * self.cell_status
+            #propagate on all cell adjacent to alive cell
+            potential_cell = self.neigboor_mask(np.array(self.cell_status,dtype=int),1)
+            gene_validation =  gene_validation * potential_cell
         
         return gene_validation
 
