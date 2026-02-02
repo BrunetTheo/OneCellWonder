@@ -14,8 +14,7 @@ class Cell:
     active_genes: np.array
     
 
-
-def initialise_grid(name_file_rules,name_file_cell,X=5,Y=5,G=100):
+def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
     genes_rules,alive_rules = read_rules_file(name_file_rules)
     for i in genes_rules:
         print(f"Rules for gene {i.active_gene}:\
@@ -182,7 +181,9 @@ class CellGrid:
         if n_neighboor != None:
             gene_validation = gene_validation * (n_neighboor == neighboor_grid)
         else:
-            gene_validation =  gene_validation * self.cell_status
+            #propagate on all cell adjacent to alive cell
+            potential_cell = self.neigboor_mask(np.array(self.cell_status,dtype=int),1)
+            gene_validation =  gene_validation * potential_cell
         
         return gene_validation
 
@@ -224,11 +225,10 @@ class CellGrid:
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
             if len(self.alive_rules ) > 1:
-                for i in range(1,len(self.alive_rules)):
-                    rule = self.alive_rules[i]
+                for rule in  self.alive_rules[1:]:
                     new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
-                                                                neighboor_grid=neighboor_grid,
-                                                                n_neighboor = rule.n_neighboor)
+                                                            neighboor_grid=neighboor_grid,
+                                                            n_neighboor = rule.n_neighboor)
         
         # remove allready alive
 
