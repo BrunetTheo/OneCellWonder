@@ -15,9 +15,9 @@ class Cell:
     
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
-    genes_rules,alive_rules = read_rules_file(name_file_rules)
+    genes_rules,alive_rules,ngene = read_rules_file(name_file_rules)
     initial_cells = parse_cell_conf(name_file_cell)
-    return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
+    return CellGrid(X,Y,ngene,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
 
 
 class CellGrid:
@@ -205,7 +205,7 @@ class CellGrid:
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
              
-            applicable = applicable * self.cell_status
+            applicable = applicable * self.cell_status   #Genes diffuses only from alive cell
             extent = self.inclusive_neigboor_mask(np.array(applicable,dtype=int),rule.propagation) 
             
 
