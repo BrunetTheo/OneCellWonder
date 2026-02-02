@@ -1,6 +1,7 @@
 import pygame
 import numpy as np
 import math
+import random
 
 windows_size = (800, 800)
 class Interface:
@@ -14,6 +15,40 @@ class Interface:
         n4 = (center[0] - height, center[1] - width)
         n5 = (center[0] - 2 * height, center[1])
         return [n0, n1, n2, n3, n4, n5]
+
+    def gene_to_color(self, i, j):
+        """Convert gene content to a color. Cache results for consistency."""
+        # Check if cell is alive
+        cell_status = self.controler.cellGrid.getCellStatus()[i, j]
+        if cell_status == 0:
+            return (0, 0, 0)  # Black for dead cells
+        
+        # Get gene content for alive cells
+        gene_content = self.controler.cellGrid.gene_content[i, j]
+        
+        # Convert gene array to a tuple so it can be used as a dictionary key
+        gene_tuple = tuple(gene_content)
+        
+        # Check if we've already assigned a color to this gene pattern
+        if gene_tuple in self.gene_color_cache:
+            return self.gene_color_cache[gene_tuple]
+        
+        # Generate a new color for this gene pattern
+        # Option 1: Use predefined color list (cycles through if needed)
+        if self.use_predefined_colors and self.color_list:
+            color_index = len(self.gene_color_cache) % len(self.color_list)
+            color = self.color_list[color_index]
+        else:
+            # Option 2: Generate random color
+            color = (
+                random.randint(50, 255),
+                random.randint(50, 255),
+                random.randint(50, 255)
+            )
+        
+        # Cache the color for this gene pattern
+        self.gene_color_cache[gene_tuple] = color
+        return color
 
     def point_in_polygon(self, point, polygon):
         """Check if a point is inside a polygon using ray casting algorithm"""
@@ -75,7 +110,7 @@ class Interface:
         genes_to_show = min(10, len(gene_content))
         
         # Create tooltip background
-        tooltip_width = 130
+        tooltip_width = 120
         tooltip_height = 30 + genes_to_show * 25
         mouse_pos = pygame.mouse.get_pos()
         
@@ -97,7 +132,7 @@ class Interface:
         self.screen.blit(tooltip_surface, (tooltip_x, tooltip_y))
         
         # Draw title
-        title_text = self.small_font.render(f'Cell ({i}, {j}) ', 
+        title_text = self.small_font.render(f'Cell ({i}, {j}):', 
                                            True, (255, 255, 100))
         self.screen.blit(title_text, (tooltip_x + 10, tooltip_y + 5))
         
@@ -130,13 +165,17 @@ class Interface:
         center = initial_center.copy()
         for i in range(self.matrix.shape[0]):
             for j in range(self.matrix.shape[1]):
-                self.draw_polygon([center[0], center[1]], self.color[self.matrix[i, j]])
+                cell_color = self.gene_to_color(i, j)
+                self.draw_polygon(center, cell_color)
                 if j % 2 == 0:
                     center[1] += width
                 else:
                     center[1] -= width
-                center[0] += 3 * height
-
+                
+                # Get color based on cell status and gene content
+                cell_color = self.gene_to_color(i, j)
+                self.draw_polygon([center[0], center[1]], cell_color)
+                
             center[0] = initial_center[0]
             center[1] = (i+1) * 2 * width + initial_center[1]
         text = self.font.render(f'Iteration {self.iteration_counter}', True, (255,255,255))
@@ -167,6 +206,27 @@ class Interface:
         self.matrix_history = []
         self.font = pygame.font.Font('freesansbold.ttf', 24)
         self.small_font = pygame.font.Font('freesansbold.ttf', 18)  # For tooltip
+
+        # Initialize gene color caching system
+        self.gene_color_cache = {}
+        
+        # Color configuration - choose one approach:
+        # Option 1: Use random colors (set to False to use predefined list)
+        self.use_predefined_colors = False
+        
+        # Option 2: Define a list of colors to cycle through
+        self.color_list = [
+            (255, 100, 100),  # Red
+            (100, 255, 100),  # Green
+            (100, 100, 255),  # Blue
+            (255, 255, 100),  # Yellow
+            (255, 100, 255),  # Magenta
+            (100, 255, 255),  # Cyan
+            (255, 150, 100),  # Orange
+            (150, 100, 255),  # Purple
+            (100, 255, 150),  # Mint
+            (255, 200, 100),  # Gold
+        ]
 
         self.matrix_history.append(self.matrix)
         # Main loop

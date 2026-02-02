@@ -91,7 +91,8 @@ def read_rules_file(filepath: str) -> Tuple[List[AndRule], List[AndRule]]:
     # Last line → active_gene = -1
     alive_rules.extend(parse_rule_line(lines[-1], active_gene=-1))
 
-    return gene_rules, alive_rules
+    ngene = len(lines[:-1])
+    return gene_rules, alive_rules,ngene
 
 
 

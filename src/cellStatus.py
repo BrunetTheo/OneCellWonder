@@ -15,7 +15,7 @@ class Cell:
     
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
-    genes_rules,alive_rules = read_rules_file(name_file_rules)
+    genes_rules,alive_rules,ngene = read_rules_file(name_file_rules)
     for i in genes_rules:
         print(f"Rules for gene {i.active_gene}:\
                 \n\tgene+:{' ; '.join(i.positive_genes.astype(str))}\
@@ -129,6 +129,11 @@ class CellGrid:
         evenCols = (cols % 2 == 0)
         neighbors = np.where(evenCols,out_even , out_odd)
         return np.array(neighbors,dtype=bool)
+    
+
+    def inclusive_neigboor_mask(self,applicable,n):
+        return self.neigboor_mask(applicable,n) | applicable
+        
 
         
     
@@ -182,7 +187,7 @@ class CellGrid:
             gene_validation = gene_validation * (n_neighboor == neighboor_grid)
         else:
             #propagate on all cell adjacent to alive cell
-            potential_cell = self.neigboor_mask(np.array(self.cell_status,dtype=int),1)
+            potential_cell = self.inclusive_neigboor_mask(np.array(self.cell_status,dtype=int),1) 
             gene_validation =  gene_validation * potential_cell
         
         return gene_validation
