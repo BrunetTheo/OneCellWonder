@@ -220,9 +220,8 @@ class CellGrid:
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
             if len(self.alive_rules ) > 1:
-                rule = self.alive_rules[1]
-
-                new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
+                for rule in  self.alive_rules[1:]:
+                    new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
                                                             neighboor_grid=neighboor_grid,
                                                             n_neighboor = rule.n_neighboor)
         
