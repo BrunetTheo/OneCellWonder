@@ -3,7 +3,7 @@
 
 
 # Install
-mamba create -n  one_cell_wonder conda-forge::pygame numpy
+mamba create -n  one_cell_wonder conda-forge::pygame numpy scipy
 
 
 
