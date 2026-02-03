@@ -171,11 +171,10 @@ class Interface:
                     center[1] += width
                 else:
                     center[1] -= width
-                
+                center[0] += 3 * height
                 # Get color based on cell status and gene content
                 cell_color = self.gene_to_color(i, j)
-                self.draw_polygon([center[0], center[1]], cell_color)
-                
+                self.draw_polygon([center[0], center[1]], cell_color)                
             center[0] = initial_center[0]
             center[1] = (i+1) * 2 * width + initial_center[1]
         text = self.font.render(f'Iteration {self.iteration_counter}', True, (255,255,255))

@@ -62,7 +62,7 @@ class CellGrid:
         self.G = G
         self.genes_rules = genes_rules
         self.alive_rules = alive_rules
-
+        self.death = False
         # 1️⃣ Cellules vivantes / mortes
         self.cell_status = np.zeros((X, Y), dtype=bool)
 
@@ -87,7 +87,8 @@ class CellGrid:
                 genes = cell.active_genes
                 for gene in genes:
                         self.gene_content[x, y, gene] = 1
-
+    def allowDeath(self):
+        self.death = True
     def getCellStatus(self):
         return self.cell_status
     
@@ -236,10 +237,11 @@ class CellGrid:
                                                             n_neighboor = rule.n_neighboor)
         
         # remove allready alive
-
-        new_alive = new_alive * (~self.cell_status)
-
-        self.cell_status = self.cell_status | new_alive
+        if self.death:
+            self.cell_status = new_alive
+        else:
+            new_alive = new_alive * (~self.cell_status)
+            self.cell_status = self.cell_status | new_alive
 
     def update_grid(self):        
         self.create_alive_cell()
