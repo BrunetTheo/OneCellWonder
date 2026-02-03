@@ -162,9 +162,8 @@ class CellGrid:
         neighboor_grid = self.get_neighbors()
         potential_cell = self.inclusive_neigboor_mask(self.cell_status,1) #Cells and their one radius neigboor
 
+        new_genes = np.zeros_like(self.gene_content)
 
-
-        new_genes = copy.deepcopy(self.gene_content)
         for rule in self.genes_rules:
             applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
