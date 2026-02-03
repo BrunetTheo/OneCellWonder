@@ -7,6 +7,12 @@ mamba create -n  one_cell_wonder conda-forge::pygame numpy scipy
 
 
 
+# Run
+```
+python main.py confs/default/ --X 80 --Y 40
+```
+
+
 
 # System and Engine Overview
 

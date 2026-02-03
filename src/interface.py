@@ -199,15 +199,19 @@ class Interface:
         pygame.display.flip()
 
     def __init__(self,windows_size, controler):
-        self.windows_size = windows_size
         self.controler=controler
+        self.matrix = self.controler.getGrid()
+        windows_size = list(windows_size)
+        windows_size[0] = int(windows_size[1] * float(self.matrix.shape[1])/float(self.matrix.shape[0]))+1
+        self.windows_size = windows_size
+
+
         pygame.init()
         self.screen = pygame.display.set_mode(windows_size)
-        pygame.display.set_caption("Lizard")
+        pygame.display.set_caption("Cellizard")
         running = False
-        self.matrix = self.controler.getGrid()
         self.color = [(0,0,0), (255, 255, 255)]
-        self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.98
+        self.cell_size = ((windows_size[1]) / (3.5 * self.matrix.shape[0]))*0.98
         clock = pygame.time.Clock()
         self.iteration_counter = 0
         self.matrix_history = []
