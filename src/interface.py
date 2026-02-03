@@ -75,13 +75,13 @@ class Interface:
         initial_center = [2*self.cell_size, 2*self.cell_size]
         center = initial_center.copy()
         
-        for i in range(self.matrix.shape[1]):
+        for i in range(self.matrix.shape[0]):
             j = 0
             polygon = self.polygon_points(center, self.cell_size)
             if self.point_in_polygon(mouse_pos, polygon):
                 return (i, j)
             
-            for j in range(self.matrix.shape[0]-1):
+            for j in range(self.matrix.shape[1]-1):
                 if j % 2 == 0:
                     center[0] += 3 * height
                     center[1] += width
@@ -163,13 +163,13 @@ class Interface:
         height = self.cell_size
         initial_center = [2*self.cell_size,2*self.cell_size]
         center = initial_center.copy()
-        for i in range(self.matrix.shape[1]):
+        for i in range(self.matrix.shape[0]):
             j=0
             # Get color based on cell status and gene content
             cell_color = self.gene_to_color(i, j)
             self.draw_polygon(center, cell_color)
             
-            for j in range(self.matrix.shape[0]-1):
+            for j in range(self.matrix.shape[1]-1):
                 if j % 2 == 0:
                     center[0] += 3 * height
                     center[1] += width

@@ -95,7 +95,7 @@ class CellGrid:
         out_even = convolve2d(self.cell_status, maskEven, mode="same")
         out_odd  = convolve2d(self.cell_status, maskOdd,  mode="same")
 
-        cols = np.arange(self.cell_status.shape[0])[None, :]
+        cols = np.arange(self.cell_status.shape[1])[None, :]
         evenCols = (cols % 2 == 0)
 
         neighbors = np.where(evenCols, out_even, out_odd) 
@@ -109,7 +109,7 @@ class CellGrid:
         out_even = convolve2d(applicable, maskEven, mode="same")
         out_odd  = convolve2d(applicable, maskOdd,  mode="same")
 
-        cols = np.arange(self.cell_status.shape[0])[None, :]
+        cols = np.arange(self.cell_status.shape[1])[None, :]
         evenCols = (cols % 2 == 0)
 
         neighbors = np.where(evenCols, out_even, out_odd) 
