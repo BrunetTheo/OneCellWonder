@@ -152,7 +152,7 @@ class Interface:
         )
         pygame.draw.polygon(
             self.screen,
-            (0, 255, 0),
+            (255, 255, 255),
             self.polygon_points(center, self.cell_size),
             width=1
         )

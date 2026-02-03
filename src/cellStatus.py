@@ -87,6 +87,8 @@ class CellGrid:
                 genes = cell.active_genes
                 for gene in genes:
                         self.gene_content[x, y, gene] = 1
+        self.propagate_genes() # I added this to also propagate the initial genes
+
     def allowDeath(self):
         self.death = True
     def getCellStatus(self):
