@@ -196,7 +196,10 @@ class Interface:
         if hovered_cell is not None:
             self.draw_tooltip(hovered_cell)
         
-        pygame.display.flip()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            pass  # Running with
 
     def __init__(self,windows_size, controler):
         self.controler=controler
