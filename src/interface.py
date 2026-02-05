@@ -2,7 +2,7 @@ import pygame
 import numpy as np
 import math
 import random
-
+import copy
 windows_size = (800, 800)
 class Interface:
     def polygon_points(self ,center , size):
@@ -16,15 +16,15 @@ class Interface:
         n5 = (center[0] - 2 * height, center[1])
         return [n0, n1, n2, n3, n4, n5]
 
-    def gene_to_color(self, i, j):
+    def gene_to_color(self, i, j,cell_status,gene_content):
         """Convert gene content to a color. Cache results for consistency."""
         # Check if cell is alive
-        cell_status = self.controler.cellGrid.getCellStatus()[i, j]
+        cell_status = cell_status[i, j]
         if cell_status == 0:
             return (0, 0, 0)  # Black for dead cells
         
         # Get gene content for alive cells
-        gene_content = self.controler.cellGrid.gene_content[i, j]
+        gene_content = gene_content[i, j]
         
         # Convert gene array to a tuple so it can be used as a dictionary key
         gene_tuple = tuple(gene_content)
@@ -104,7 +104,7 @@ class Interface:
             return
         
         i, j = cell_coords
-        gene_content = self.controler.cellGrid.gene_content[i, j]
+        gene_content = self.matrix_history[self.iteration_counter-1][1][i, j]
         
         # Get first 10 genes
         genes_to_show = min(10, len(gene_content))
@@ -166,8 +166,8 @@ class Interface:
         for i in range(self.matrix.shape[0]):
             j=0
             # Get color based on cell status and gene content
-            cell_color = self.gene_to_color(i, j)
-            self.draw_polygon(center, cell_color)
+            # = self.gene_to_color(i, j)
+            #self.draw_polygon(center, cell_color)
             
             for j in range(self.matrix.shape[1]-1):
                 if j % 2 == 0:
@@ -178,7 +178,7 @@ class Interface:
                     center[1] -= width
                 
                 # Get color based on cell status and gene content
-                cell_color = self.gene_to_color(i, j)
+                cell_color = self.gene_to_color(i, j,self.matrix_history[self.iteration_counter-1][0],self.matrix_history[self.iteration_counter-1][1])
                 self.draw_polygon([center[0], center[1]], cell_color)
                 
             center[0] = initial_center[0]
@@ -242,7 +242,8 @@ class Interface:
             (255, 200, 100),  # Gold
         ]
 
-        self.matrix_history.append(self.matrix)
+        self.matrix_history.append([self.controler.cellGrid.getCellStatus(),self.controler.cellGrid.gene_content])
+        self.iteration_counter = 1
 
         # Main loop
         while True:
@@ -250,19 +251,22 @@ class Interface:
                 if event.type == pygame.QUIT: #close
                     pygame.quit()
                     return
-
                 if event.type == pygame.KEYDOWN:
+                    print(self.iteration_counter,len(self.matrix_history))
+
                     if event.key == pygame.K_SPACE: # Start/ stop
                         running = not running
                     elif event.key == pygame.K_RIGHT:
-                        self.controler.update()
                         self.matrix = self.controler.getGrid()
                         self.iteration_counter += 1
-                        self.matrix_history.append(self.matrix)
+                        if len(self.matrix_history)< self.iteration_counter:
+                            self.controler.update()
+                            self.matrix_history.append([self.controler.cellGrid.getCellStatus(),self.controler.cellGrid.gene_content])
                     elif event.key == pygame.K_LEFT:
                         self.iteration_counter -= 1
-                        self.matrix = self.matrix_history[self.iteration_counter]
-                        self.matrix_history = self.matrix_history[:-1]
+                        if self.iteration_counter==0:
+                            self.iteration_counter =1
+
                     elif event.key == pygame.K_a: # Clear the board
                         self.controler.show = 0
                         self.matrix = self.controler.getGrid()
@@ -275,9 +279,9 @@ class Interface:
             
             if running:
                 self.controler.update()
-                self.matrix = self.controler.getGrid()
                 self.iteration_counter += 1
-                self.matrix_history.append(self.matrix)
+                if len(self.matrix_history)< self.iteration_counter:
+                    self.matrix_history.append([self.controler.cellGrid.getCellStatus(),self.controler.cellGrid.gene_content])
             
             self.draw_grid()
             clock.tick(60)
