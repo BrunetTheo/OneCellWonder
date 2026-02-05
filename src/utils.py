@@ -29,3 +29,4 @@ def makeMask(iseven,n):
     mask = mask>0
     mask[n,n] = 0 #Remove the original cell
     return mask
+

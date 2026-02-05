@@ -115,47 +115,34 @@ class CellGrid:
         out_even = convolve2d(to_int, maskEven, mode="same")
         out_odd  = convolve2d(to_int, maskOdd,  mode="same")
 
-        cols = np.arange(self.cell_status.shape[0])[None, :]
+        cols = np.arange(self.cell_status.shape[1])[None, :]
         evenCols = (cols % 2 == 0)
 
         neighbors = np.where(evenCols, out_even, out_odd) 
         return neighbors
         
-    def neigboor_mask(self,applicable,n):
+    def neigboor_mask(self,applicable,n,p=False):
         maskEven = utils.makeMask(False,n)        
-        maskOdd = utils.makeMask(True,n)        
+        maskOdd = utils.makeMask(True,n)
+        if n%2 != 0:
+            maskEven, maskOdd = maskOdd, maskEven
         maskEven[n,n] = 1
         maskOdd[n,n] = 1
-        out_even = convolve2d(applicable, maskEven, mode="same")
-        out_odd  = convolve2d(applicable, maskOdd,  mode="same")
-        cols = np.arange(applicable.shape[0])[None,:]
-        evenCols = (cols % 2 == 0)
-        neighbors = np.where(evenCols,out_even , out_odd)
-        return np.array(neighbors,dtype=bool)
+        even = applicable.copy()
+        odd = applicable.copy()
+        even[:,1::2] = 0
+        odd[:,::2] = 0
+        
+        out_even = convolve2d(even, maskEven, mode="same")
+        out_odd  = convolve2d(odd, maskOdd,  mode="same")
+        
+        neighbors = out_even + out_odd + applicable
     
+        return np.array(neighbors,dtype=bool)
+        
 
     def inclusive_neigboor_mask(self,applicable,n):
-        return self.neigboor_mask(applicable,n) | applicable
-        
-
-        
-    
-    def apply_neighborhoodmask(self, gene_grid, rule_applied_grid, affected_neighborhood, gene_idx):
-        """based on the affected_neighborhood, it creates a mask with radius affected_neighborhood, 
-        and applies the mask to the origin of signal (found in rule_applied_grid)."""
-        rows, cols = np.where(rule_applied_grid == 1)
-        #get mask
-        for r, c in zip(rows, cols):
-            #check if y-coordinate is even or odd
-            if c % 2 == 0:
-                mask = utils.makeMask(True, affected_neighborhood)
-            else:
-                mask = utils.makeMask(False, affected_neighborhood)
-            # apply mask
-            gene_grid[r, c, gene_idx][mask == 1] = 1
-        return gene_grid
-
-    
+        return self.neigboor_mask(applicable,n) | applicable    
 
     
     def get_genes(self, cell_indices=None):
@@ -215,7 +202,11 @@ class CellGrid:
             applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
                                            n_neighboor = rule.n_neighboor)
-            extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
+            if rule.active_gene == 1:
+                p=True
+            else:
+                p=False
+            extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation,p)
             new_genes[:,:,rule.active_gene] = extent   # Removed the OR rule to allow a gene to be removed if the rule is not valid anymore
 
         self.gene_content = new_genes
