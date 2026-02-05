@@ -279,6 +279,5 @@ class Interface:
                 self.matrix = self.controler.getGrid()
                 self.iteration_counter += 1
                 self.matrix_history.append(self.matrix)
-            #print(self.iteration_counter)
             self.draw_grid()
             clock.tick(60)
