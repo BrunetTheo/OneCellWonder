@@ -1,9 +1,7 @@
 import numpy as np
 import math
 from scipy.signal import convolve2d
-from functools import lru_cache
 
-@lru_cache(maxsize=None)  # unlimited cache
 def makeMask(iseven,n):
     """
     Create a mask of size n
