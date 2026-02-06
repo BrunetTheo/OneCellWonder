@@ -75,13 +75,13 @@ class Interface:
         initial_center = [2*self.cell_size, 2*self.cell_size]
         center = initial_center.copy()
         
-        for i in range(self.matrix.shape[1]):
+        for i in range(self.matrix.shape[0]):
             j = 0
             polygon = self.polygon_points(center, self.cell_size)
             if self.point_in_polygon(mouse_pos, polygon):
                 return (i, j)
             
-            for j in range(self.matrix.shape[0]-1):
+            for j in range(self.matrix.shape[1]-1):
                 if j % 2 == 0:
                     center[0] += 3 * height
                     center[1] += width
@@ -164,9 +164,18 @@ class Interface:
         initial_center = [2*self.cell_size,2*self.cell_size]
         center = initial_center.copy()
         for i in range(self.matrix.shape[0]):
+<<<<<<< HEAD
             for j in range(self.matrix.shape[1]):
                 cell_color = self.gene_to_color(i, j)
                 self.draw_polygon(center, cell_color)
+=======
+            j=0
+            # Get color based on cell status and gene content
+            cell_color = self.gene_to_color(i, j)
+            self.draw_polygon(center, cell_color)
+            
+            for j in range(self.matrix.shape[1]-1):
+>>>>>>> origin/main
                 if j % 2 == 0:
                     center[1] += width
                 else:
@@ -188,18 +197,31 @@ class Interface:
         if hovered_cell is not None:
             self.draw_tooltip(hovered_cell)
         
-        pygame.display.flip()
+        try:
+            pygame.display.flip()
+        except pygame.error:
+            pass  # Running with
 
     def __init__(self,windows_size, controler):
-        self.windows_size = windows_size
         self.controler=controler
+        self.matrix = self.controler.getGrid()
+        windows_size = list(windows_size)
+        windows_size[0] = int(windows_size[1] * float(self.matrix.shape[1])/float(self.matrix.shape[0]))+1
+        self.windows_size = windows_size
+
+
         pygame.init()
         self.screen = pygame.display.set_mode(windows_size)
-        pygame.display.set_caption("Lizard")
+        pygame.display.set_caption("Cellizard")
         running = False
+<<<<<<< HEAD
         self.matrix = self.controler.getGrid()
         self.color = [(0,0,0), (255, 255, 255),(0,0,255)]
         self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.9
+=======
+        self.color = [(0,0,0), (255, 255, 255)]
+        self.cell_size = ((windows_size[1]) / (3.5 * self.matrix.shape[0]))*0.98
+>>>>>>> origin/main
         clock = pygame.time.Clock()
         self.iteration_counter = 0
         self.matrix_history = []
