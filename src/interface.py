@@ -164,18 +164,12 @@ class Interface:
         initial_center = [2*self.cell_size,2*self.cell_size]
         center = initial_center.copy()
         for i in range(self.matrix.shape[0]):
-<<<<<<< HEAD
-            for j in range(self.matrix.shape[1]):
-                cell_color = self.gene_to_color(i, j)
-                self.draw_polygon(center, cell_color)
-=======
             j=0
             # Get color based on cell status and gene content
             cell_color = self.gene_to_color(i, j)
             self.draw_polygon(center, cell_color)
             
             for j in range(self.matrix.shape[1]-1):
->>>>>>> origin/main
                 if j % 2 == 0:
                     center[1] += width
                 else:
@@ -214,14 +208,8 @@ class Interface:
         self.screen = pygame.display.set_mode(windows_size)
         pygame.display.set_caption("Cellizard")
         running = False
-<<<<<<< HEAD
-        self.matrix = self.controler.getGrid()
-        self.color = [(0,0,0), (255, 255, 255),(0,0,255)]
-        self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.9
-=======
         self.color = [(0,0,0), (255, 255, 255)]
         self.cell_size = ((windows_size[1]) / (3.5 * self.matrix.shape[0]))*0.98
->>>>>>> origin/main
         clock = pygame.time.Clock()
         self.iteration_counter = 0
         self.matrix_history = []
