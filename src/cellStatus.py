@@ -101,43 +101,37 @@ class CellGrid:
     def get_coords(self):
         """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
         pass
-    
-    def get_neighbors(self,n=1):
-        """
-        Docstring for get_neighbors
-        
-        n (int): number of wanted  
-        """
-        maskEven = utils.makeMask(False,n)        
-        maskOdd = utils.makeMask(True,n)        
-        
-        to_int = np.array(self.cell_status,dtype=int)
-        out_even = convolve2d(to_int, maskEven, mode="same")
-        out_odd  = convolve2d(to_int, maskOdd,  mode="same")
 
-        cols = np.arange(self.cell_status.shape[1])[None, :]
-        evenCols = (cols % 2 == 0)
-
-        neighbors = np.where(evenCols, out_even, out_odd) 
-        return neighbors
-        
-    def neigboor_mask(self,applicable,n,p=False):
+    def convolution(self,matrix,n):
         maskEven = utils.makeMask(False,n)        
         maskOdd = utils.makeMask(True,n)
         if n%2 != 0:
             maskEven, maskOdd = maskOdd, maskEven
         maskEven[n,n] = 1
         maskOdd[n,n] = 1
-        even = applicable.copy()
-        odd = applicable.copy()
+        even = matrix.copy()
+        odd = matrix.copy()
         even[:,1::2] = 0
         odd[:,::2] = 0
-        
         out_even = convolve2d(even, maskEven, mode="same")
-        out_odd  = convolve2d(odd, maskOdd,  mode="same")
+        out_odd  = convolve2d(odd, maskOdd,  mode="same")    
+        neighbors = out_even + out_odd
+        return neighbors
+   
+    def get_neighbors(self,n=1):
+        """
+        Docstring for get_neighbors
         
-        neighbors = out_even + out_odd + applicable
+        n (int): number of wanted  
+        """
+        neighbors = self.convolution(self.cell_status.astype(int),n)
+        print(neighbors)
+        return neighbors
     
+    
+    def neigboor_mask(self,applicable,n):
+        neighbors = self.convolution(applicable,n)
+        neighbors = neighbors + applicable
         return np.array(neighbors,dtype=bool)
         
 
@@ -206,7 +200,7 @@ class CellGrid:
                 p=True
             else:
                 p=False
-            extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation,p)
+            extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
             new_genes[:,:,rule.active_gene] = extent   # Removed the OR rule to allow a gene to be removed if the rule is not valid anymore
 
         self.gene_content = new_genes
