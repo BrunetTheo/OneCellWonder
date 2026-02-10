@@ -91,6 +91,7 @@ class CellGrid:
 
     def allowDeath(self):
         self.death = True
+        
     def getCellStatus(self):
         return self.cell_status
     
