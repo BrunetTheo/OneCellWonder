@@ -91,7 +91,7 @@ class CellGrid:
 
     def allowDeath(self):
         self.death = True
-        
+
     def getCellStatus(self):
         return self.cell_status
     
@@ -104,8 +104,8 @@ class CellGrid:
         pass
 
     def convolution(self,matrix,n):
-        maskEven = utils.makeMask(False,n)        
-        maskOdd = utils.makeMask(True,n)
+        maskEven = utils.makeMask(True,n)        
+        maskOdd = utils.makeMask(False,n)
         if n%2 != 0:
             maskEven, maskOdd = maskOdd, maskEven
         maskEven[n,n] = 1
@@ -126,7 +126,6 @@ class CellGrid:
         n (int): number of wanted  
         """
         neighbors = self.convolution(self.cell_status.astype(int),n)
-        print(neighbors)
         return neighbors
     
     
