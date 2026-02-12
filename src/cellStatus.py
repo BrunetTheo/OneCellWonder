@@ -2,9 +2,9 @@ import numpy as np
 from dataclasses import dataclass
 from src.parse_rules import AndRule
 from scipy.signal import convolve2d
-from parse_rules import *
-from parse_cells import *
-import utils as utils
+from src.parse_rules import *
+from src.parse_cells import *
+import src.utils as utils
 import copy
 
 @dataclass
@@ -16,23 +16,8 @@ class Cell:
 
 def initialise_grid(name_file_rules,name_file_cell,X=20,Y=50,G=100):
     genes_rules,alive_rules,ngene = read_rules_file(name_file_rules)
-    for i in genes_rules:
-        print(f"Rules for gene {i.active_gene}:\
-                \n\tgene+:{' ; '.join(i.positive_genes.astype(str))}\
-                \n\tgene-:{' ; '.join(i.negative_genes.astype(str))}\
-                \n\tn_neighboor: {i.n_neighboor}\
-                \n\tpropagation: {i.propagation}\n")
-    for i in alive_rules:
-        print(f"Rules for cells:\
-                \n\tgene+:{' ; '.join(i.positive_genes.astype(str))}\
-                \n\tgene-:{' ; '.join(i.negative_genes.astype(str))}\
-                \n\tn_neighboor: {i.n_neighboor}\
-                \n\tpropagation: {i.propagation}\n")
-        
     initial_cells = parse_cell_conf(name_file_cell)
-    for i in initial_cells:
-        print(i.__dict__)
-    return CellGrid(X,Y,G,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
+    return CellGrid(X,Y,ngene,genes_rules=genes_rules,alive_rules=alive_rules,initial_cells=initial_cells)
 
 
 class CellGrid:
@@ -62,9 +47,9 @@ class CellGrid:
         self.G = G
         self.genes_rules = genes_rules
         self.alive_rules = alive_rules
-        self.death = False
+
         # 1️⃣ Cellules vivantes / mortes
-        self.cell_status = np.zeros((X, Y), dtype=bool)
+        self.cell_status = np.zeros((X, Y), dtype=int)
 
         # 2️⃣ Contenu génétique
         self.gene_content = np.zeros((X, Y, G), dtype=int)
@@ -87,10 +72,8 @@ class CellGrid:
                 genes = cell.active_genes
                 for gene in genes:
                         self.gene_content[x, y, gene] = 1
-        self.propagate_genes() # I added this to also propagate the initial genes
-
-    def allowDeath(self):
-        self.death = True
+        
+        self.propagate_genes()
 
     def getCellStatus(self):
         return self.cell_status
@@ -99,51 +82,61 @@ class CellGrid:
         return 0 <= x < self.X and 0 <= y < self.Y
 
 
-    def get_coords(self):
-        """Return coordinates of all cells on the grid. Implies whether a cell is dead or alive"""
-        pass
-
-    def convolution(self,matrix,n):
-        maskEven = utils.makeMask(True,n)        
-        maskOdd = utils.makeMask(False,n)
-        if n%2 != 0:
-            maskEven, maskOdd = maskOdd, maskEven
-        maskEven[n,n] = 1
-        maskOdd[n,n] = 1
-        even = matrix.copy()
-        odd = matrix.copy()
-        even[:,1::2] = 0
-        odd[:,::2] = 0
-        out_even = convolve2d(even, maskEven, mode="same")
-        out_odd  = convolve2d(odd, maskOdd,  mode="same")    
-        neighbors = out_even + out_odd
-        return neighbors
-   
+    
     def get_neighbors(self,n=1):
         """
         Docstring for get_neighbors
         
         n (int): number of wanted  
         """
-        neighbors = self.convolution(self.cell_status.astype(int),n)
+        maskEven = utils.makeMask(True,n)        
+        maskOdd = utils.makeMask(False,n)        
+        
+        out_even = convolve2d(self.cell_status, maskEven, mode="same")
+        out_odd  = convolve2d(self.cell_status, maskOdd,  mode="same")
+
+        cols = np.arange(self.cell_status.shape[1])[None, :]
+        evenCols = (cols % 2 == 0)
+
+        neighbors = np.where(evenCols, out_even, out_odd) 
         return neighbors
     
-    
-    def neigboor_mask(self,applicable,n):
-        neighbors = self.convolution(applicable,n)
-        neighbors = neighbors + applicable
-        return np.array(neighbors,dtype=bool)
+
+    def convolution(self, matrix, n):
+        maskEven = utils.makeMask(True, n).copy()        
+        maskOdd = utils.makeMask(False, n).copy()
         
+        if n % 2 != 0:
+            maskEven, maskOdd = maskOdd, maskEven
+        
+        maskEven[n, n] = 1
+        maskOdd[n, n] = 1
+        
+        # Create proper copies and ensure we don't modify the input
+        even = matrix.copy()  # Use .copy() for numpy arrays
+        odd = matrix.copy()
+        
+        even[:, 1::2] = 0
+        odd[:, ::2] = 0
+        
+        out_even = convolve2d(even, maskEven, mode="same")
+        out_odd = convolve2d(odd, maskOdd, mode="same")    
+        
+        neighbors = out_even + out_odd
+        return neighbors
+
+    def neigboor_mask(self, applicable, n):
+        # Create a true independent copy before passing to convolution
+        neighbors = self.convolution(applicable.copy(), n)
+        return np.array(neighbors, dtype=bool)
+    
 
     def inclusive_neigboor_mask(self,applicable,n):
-        return self.neigboor_mask(applicable,n) | applicable    
-
+        return self.neigboor_mask(applicable,n) | applicable
+        
+        
     
-    def get_genes(self, cell_indices=None):
-        """Returns set of active genes per cell"""
-        pass
-    
-    def validate_rule(self,positive_genes,negative_genes,neighboor_grid,n_neighboor=None):
+    def validate_rule(self,positive_genes,negative_genes,neighboor_grid,potential_cell,n_neighboor=None):
         """ Check If a rule return true
         
         positive_genes = numpy array or gene that must be present e.g [1] when the second gene need to be there
@@ -168,45 +161,39 @@ class CellGrid:
         gene_validation = positive_gene_validation * negative_gene_validation
 
         if n_neighboor != None:
+            #Either fixed number of neighboors
             gene_validation = gene_validation * (n_neighboor == neighboor_grid)
         else:
+            #Or all cell and their neigbboors
             #propagate on all cell adjacent to alive cell
-            potential_cell = self.inclusive_neigboor_mask(np.array(self.cell_status,dtype=int),1) 
             gene_validation =  gene_validation * potential_cell
         
         return gene_validation
 
 
-    def match_rules(self, rules):
-        """matches the rules to cell status """
-        if rules != []:
-            rule = rules[0]
-            init = self.validate_rule(rule.positive_genes,rule.negative_genes,rule.n_neighboor)
-            for rule in rules[1:]:
-                init *= self.validate_rule(rule.positive_genes,rule.negative_genes,rule.n_neighboor)
-            return  np.zeros_like(self.gene_grid[:,:,0],dtype=bool)
-        else:
-            return 
-        
-
     def propagate_genes(self):
+
         neighboor_grid = self.get_neighbors()
-        new_genes = copy.deepcopy(self.gene_content)
+        potential_cell = self.inclusive_neigboor_mask(self.cell_status.copy(),1) #Cells and their one radius neigboor
+        new_genes = np.zeros_like(self.gene_content)
+
         for rule in self.genes_rules:
             applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
+                                           potential_cell=potential_cell,
                                            n_neighboor = rule.n_neighboor)
-            if rule.active_gene == 1:
-                p=True
-            else:
-                p=False
-            extent = self.neigboor_mask(np.array(applicable,dtype=int),rule.propagation)
-            new_genes[:,:,rule.active_gene] = extent   # Removed the OR rule to allow a gene to be removed if the rule is not valid anymore
+             
+            applicable = applicable * self.cell_status   #Genes diffuses only from alive cell
+            extent = self.inclusive_neigboor_mask(np.array(applicable,dtype=int),rule.propagation) 
+            
+
+            new_genes[:,:,rule.active_gene] = new_genes[:,:,rule.active_gene] | extent
 
         self.gene_content = new_genes
 
     def create_alive_cell(self):
         neighboor_grid = self.get_neighbors()
+        potential_cell = self.inclusive_neigboor_mask(self.cell_status.copy(),1) #Cells and their one radius neigboor
 
         # First find potential new cells
         if len(self.alive_rules) == 0:
@@ -216,19 +203,16 @@ class CellGrid:
             rule = self.alive_rules[0]
             new_alive = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
+                                            potential_cell=potential_cell,
                                            n_neighboor = rule.n_neighboor)
             if len(self.alive_rules ) > 1:
                 for rule in  self.alive_rules[1:]:
                     new_alive  = new_alive | self.validate_rule(rule.positive_genes,rule.negative_genes,
                                                             neighboor_grid=neighboor_grid,
+                                                            potential_cell=potential_cell,
                                                             n_neighboor = rule.n_neighboor)
         
         # remove allready alive
-        if self.death:
-            self.cell_status = new_alive
-        else:
-            new_alive = new_alive * (~self.cell_status)
-            self.cell_status = self.cell_status | new_alive
 
         new_alive = new_alive * (1 - self.cell_status)
         #return new_alive
@@ -240,9 +224,5 @@ class CellGrid:
       
         self.create_alive_cell()
         self.propagate_genes()
-
-
-        
-
-
-
+       
+            #where the rules apply

@@ -87,7 +87,7 @@ def read_rules_file(filepath: str) -> Tuple[List[AndRule], List[AndRule]]:
 
     gene_rules: List[AndRule] = []
     alive_rules: List[AndRule] = []
-    
+
     # All lines except the last → normal active_gene
     for active_gene, line in enumerate(lines[:-1]):
         gene_rules.extend(parse_rule_line(line, active_gene))
