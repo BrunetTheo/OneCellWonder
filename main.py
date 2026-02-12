@@ -9,8 +9,9 @@ from controler import Controller
 def main():
     parser = argparse.ArgumentParser( description = 'One Cell Wonder')
     parser.add_argument("folderpath", help="path to the folder with: rules.txt and initial_cell.txt")
-    parser.add_argument("--X", help="width",type=int,default=100)
-    parser.add_argument("--Y", help="width",type=int,default=100)
+    parser.add_argument("-x","--X", help="width",type=int,default=100)
+    parser.add_argument("-y","--Y", help="height",type=int,default=100)
+    parser.add_argument("--death", help="This tag allow a cell to die.", action='store_true', default=False)
 
     args=parser.parse_args()
 
@@ -33,7 +34,7 @@ def main():
         print(f"Error: The following required file(s) are missing: {', '.join(missing_files)}")
         sys.exit(1)
 
-    c = Controller(args.X,args.Y,initial_file, rules_file)
+    c = Controller(args.X,args.Y,initial_file, rules_file,args.death)
 
     
 if __name__ == '__main__':

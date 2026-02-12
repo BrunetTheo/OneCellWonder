@@ -1,9 +1,7 @@
 import numpy as np
 import math
 from scipy.signal import convolve2d
-from functools import lru_cache
 
-@lru_cache(maxsize=None)  # unlimited cache
 def makeMask(iseven,n):
     """
     Create a mask of size n
@@ -13,6 +11,7 @@ def makeMask(iseven,n):
     """
     meven=np.array([[1,1,1],[1,0,1],[0,1,0]])
     modd = np.array([[0,1,0],[1,0,1],[1,1,1]])
+    
     mask = np.zeros((n*2+1,n*2+1))
     mask[n,n] = 1
     for i in range(n):
@@ -30,3 +29,4 @@ def makeMask(iseven,n):
     mask = mask>0
     mask[n,n] = 0 #Remove the original cell
     return mask
+

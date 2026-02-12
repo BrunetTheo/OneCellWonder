@@ -75,13 +75,13 @@ class Interface:
         initial_center = [2*self.cell_size, 2*self.cell_size]
         center = initial_center.copy()
         
-        for i in range(self.matrix.shape[0]):
+        for i in range(self.matrix.shape[1]):
             j = 0
             polygon = self.polygon_points(center, self.cell_size)
             if self.point_in_polygon(mouse_pos, polygon):
                 return (i, j)
             
-            for j in range(self.matrix.shape[1]-1):
+            for j in range(self.matrix.shape[0]-1):
                 if j % 2 == 0:
                     center[0] += 3 * height
                     center[1] += width
@@ -152,13 +152,13 @@ class Interface:
         )
         pygame.draw.polygon(
             self.screen,
-            (255, 255, 255),
+            (25, 25, 25),
             self.polygon_points(center, self.cell_size),
             width=1
         )
 
     def draw_grid(self):
-        self.screen.fill((20, 20, 20))
+        self.screen.fill((10, 10, 10))
         width = math.sqrt(3) * self.cell_size
         height = self.cell_size
         initial_center = [2*self.cell_size,2*self.cell_size]
@@ -171,20 +171,16 @@ class Interface:
             
             for j in range(self.matrix.shape[1]-1):
                 if j % 2 == 0:
-                    center[0] += 3 * height
                     center[1] += width
                 else:
-                    center[0] += 3 * height
                     center[1] -= width
-                
+                center[0] += 3 * height
                 # Get color based on cell status and gene content
                 cell_color = self.gene_to_color(i, j,self.matrix_history[self.iteration_counter-1][0],self.matrix_history[self.iteration_counter-1][1])
                 self.draw_polygon([center[0], center[1]], cell_color)
                 
             center[0] = initial_center[0]
-            center[1] = i * 2 * width + initial_center[1]
-        
-        # Draw iteration counter
+            center[1] = (i+1) * 2 * width + initial_center[1]
         text = self.font.render(f'Iteration {self.iteration_counter}', True, (255,255,255))
         textRect = text.get_rect()
         textRect.bottomright = self.windows_size
@@ -196,25 +192,18 @@ class Interface:
         if hovered_cell is not None:
             self.draw_tooltip(hovered_cell)
         
-        try:
-            pygame.display.flip()
-        except pygame.error:
-            pass  # Running with
+        pygame.display.flip()
 
     def __init__(self,windows_size, controler):
-        self.controler=controler
-        self.matrix = self.controler.getGrid()
-        windows_size = list(windows_size)
-        windows_size[0] = int(windows_size[1] * float(self.matrix.shape[1])/float(self.matrix.shape[0]))+1
         self.windows_size = windows_size
-
-
+        self.controler=controler
         pygame.init()
         self.screen = pygame.display.set_mode(windows_size)
-        pygame.display.set_caption("Cellizard")
+        pygame.display.set_caption("Lizard")
         running = False
-        self.color = [(0,0,0), (255, 255, 255)]
-        self.cell_size = ((windows_size[1]) / (3.5 * self.matrix.shape[0]))*0.98
+        self.matrix = self.controler.getGrid()
+        self.color = [(0,0,0), (255, 255, 255),(0,0,255)]
+        self.cell_size = ((windows_size[0]) / (3.5 * self.matrix.shape[0]))*0.9
         clock = pygame.time.Clock()
         self.iteration_counter = 0
         self.matrix_history = []
@@ -270,10 +259,26 @@ class Interface:
                     elif event.key == pygame.K_a: # Clear the board
                         self.controler.show = 0
                         self.matrix = self.controler.getGrid()
-                    elif event.key == pygame.K_z: # Clear the board
+                    elif event.key == pygame.K_z: 
                         self.controler.show = 1
                         self.matrix = self.controler.getGrid()
-                    elif event.key == pygame.K_r: # Clear the board
+                    elif event.key == pygame.K_e: 
+                        self.controler.show = 2
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_r: 
+                        self.controler.show = 3
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_t: 
+                        self.controler.show = 4
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_y: 
+                        self.controler.show = 5
+                        self.matrix = self.controler.getGrid()
+                    elif event.key == pygame.K_u: 
+                        self.controler.show = 6
+                        self.matrix = self.controler.getGrid()
+                    
+                    elif event.key == pygame.K_w: 
                         self.controler.show = -1
                         self.matrix = self.controler.getGrid()
             

@@ -7,17 +7,6 @@ mamba create -n  one_cell_wonder conda-forge::pygame numpy scipy
 
 
 
-# Run
-```
-python main.py confs/default/ --X 80 --Y 40
-```
-
-
-# Example
-
-![alt text](https://github.com/BrunetTheo/OneCellWonder/blob/main/gifs/oscillator_simulation.gif?raw=true)
-
-
 
 # System and Engine Overview
 
