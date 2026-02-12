@@ -34,7 +34,7 @@ def main():
         print(f"Error: The following required file(s) are missing: {', '.join(missing_files)}")
         sys.exit(1)
 
-    c = Controller(args.X,args.Y,initial_file, rules_file,args.death)
+    c = Controller(args.X,args.Y,initial_file, rules_file)#,args.death)
 
     
 if __name__ == '__main__':
