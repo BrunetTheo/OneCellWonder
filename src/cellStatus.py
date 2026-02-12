@@ -203,7 +203,7 @@ class CellGrid:
         # remove allready alive
 
         new_alive = new_alive * (1 - self.cell_status)
-
+        #return new_alive
         self.cell_status = self.cell_status | new_alive
 
     def update_grid(self):

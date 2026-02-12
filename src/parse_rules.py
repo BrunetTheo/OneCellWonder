@@ -18,7 +18,11 @@ def parse_and_rule(rule_str: str, active_gene: int) -> AndRule:
       [1,2,not(3),n(6)]7
       [n(1)]            # propagation defaults to 0
     """
-    match = re.fullmatch(r"\[(.*?)\](\d*)", rule_str.strip())
+
+    # Remove comments (anything after '#')
+    rule_str = rule_str.split("#", 1)[0].strip()
+
+    match = re.fullmatch(r"\[(.*?)\](\d*)", rule_str)
     if not match:
         raise ValueError(f"Invalid rule format: {rule_str}")
 

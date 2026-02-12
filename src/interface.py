@@ -107,7 +107,7 @@ class Interface:
         gene_content = self.matrix_history[self.iteration_counter-1][1][i, j]
         
         # Get first 10 genes
-        genes_to_show = min(10, len(gene_content))
+        genes_to_show = len(gene_content)
         
         # Create tooltip background
         tooltip_width = 120
