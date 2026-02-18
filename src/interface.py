@@ -19,8 +19,8 @@ class Interface:
     def gene_to_color(self, i, j,cell_status,gene_content):
         """Convert gene content to a color. Cache results for consistency."""
         # Check if cell is alive
-        cell_status = cell_status[i, j]
-        if cell_status == 0:
+        cell_status_ij = cell_status[i, j]
+        if cell_status_ij == 0:
             return (0, 0, 0)  # Black for dead cells
         
         # Get gene content for alive cells
@@ -201,6 +201,10 @@ class Interface:
             pygame.display.flip()
         except pygame.error:
             pass  # Running with
+    def save_status(self):
+        return [self.controler.cellGrid.getCellStatus(),
+                self.controler.cellGrid.gene_content,
+                self.controler.cellGrid.get_neighbors()]
 
     def __init__(self,windows_size, controler):
         self.controler=controler
@@ -243,9 +247,7 @@ class Interface:
             (255, 200, 100),  # Gold
         ]
 
-        self.matrix_history.append([self.controler.cellGrid.getCellStatus(),
-                                    self.controler.cellGrid.gene_content,
-                                    self.controler.cellGrid.get_neighbors()])
+        self.matrix_history.append(self.save_status())
         self.iteration_counter = 1
 
         # Main loop
@@ -264,7 +266,7 @@ class Interface:
                         self.iteration_counter += 1
                         if len(self.matrix_history)< self.iteration_counter:
                             self.controler.update()
-                            self.matrix_history.append([self.controler.cellGrid.getCellStatus(),self.controler.cellGrid.gene_content,self.controler.cellGrid.get_neighbors()])
+                            self.matrix_history.append(self.save_status())
                     elif event.key == pygame.K_LEFT:
                         self.iteration_counter -= 1
                         if self.iteration_counter==0:
@@ -284,7 +286,7 @@ class Interface:
                 self.controler.update()
                 self.iteration_counter += 1
                 if len(self.matrix_history)< self.iteration_counter:
-                    self.matrix_history.append([self.controler.cellGrid.getCellStatus(),self.controler.cellGrid.gene_content,self.controler.cellGrid.get_neighbors()])
+                    self.matrix_history.append(self.save_status())
             
             self.draw_grid()
             clock.tick(60)

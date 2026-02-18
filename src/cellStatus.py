@@ -100,18 +100,62 @@ class CellGrid:
 
         neighbors = np.where(evenCols, out_even, out_odd) 
         return neighbors
+
+
+    def sparse_convolution(self, matrix, n):
+        """Only convolve around non-zero cells - CORRECTED."""
+        
+        active_coords = np.argwhere(matrix != 0)
+        
+        if len(active_coords) == 0:
+            return np.zeros_like(matrix)
+        
+        result = np.zeros_like(matrix, dtype=int)
+
+        iseven_for_even_cols = True
+        iseven_for_odd_cols = False
+        
+        if n % 2 != 0:
+            iseven_for_even_cols, iseven_for_odd_cols = iseven_for_odd_cols, iseven_for_even_cols
+        
+        # Get masks with swapped parameters
+        maskEven_with_center = utils.makeMask(iseven_for_even_cols, n, include_center=True)
+        maskOdd_with_center = utils.makeMask(iseven_for_odd_cols, n, include_center=True)
+        
+        
+        for x, y in active_coords:
+            mask = maskEven_with_center if y % 2 == 0 else maskOdd_with_center
+            
+            x_start = max(0, x - n)
+            x_end = min(self.X, x + n + 1)
+            y_start = max(0, y - n)
+            y_end = min(self.Y, y + n + 1)
+            
+            mask_x_start = n - (x - x_start)
+            mask_x_end = n + (x_end - x)
+            mask_y_start = n - (y - y_start)
+            mask_y_end = n + (y_end - y)
+            
+            mask_slice = mask[mask_x_start:mask_x_end, mask_y_start:mask_y_end]
+            
+            # CORRECTED: Use matrix[x, y] not neighborhood
+            result[x_start:x_end, y_start:y_end] += matrix[x, y] * mask_slice
+        
+        return result
     
 
     def convolution(self, matrix, n):
-        maskEven = utils.makeMask(True, n).copy()        
-        maskOdd = utils.makeMask(False, n).copy()
-        
+      
+        iseven_for_even_cols = True
+        iseven_for_odd_cols = False
+
         if n % 2 != 0:
-            maskEven, maskOdd = maskOdd, maskEven
+            iseven_for_even_cols, iseven_for_odd_cols = iseven_for_odd_cols, iseven_for_even_cols
         
-        maskEven[n, n] = 1
-        maskOdd[n, n] = 1
-        
+        # Get masks with swapped parameters
+        maskEven = utils.makeMask(iseven_for_even_cols, n, include_center=True)
+        maskOdd = utils.makeMask(iseven_for_odd_cols, n, include_center=True)
+
         # Create proper copies and ensure we don't modify the input
         even = matrix.copy()  # Use .copy() for numpy arrays
         odd = matrix.copy()
@@ -124,10 +168,19 @@ class CellGrid:
         
         neighbors = out_even + out_odd
         return neighbors
+    
+    def adaptive_convolution(self, matrix, n):
+        """Choose sparse or dense convolution based on occupancy."""
+        occupancy = np.count_nonzero(matrix) / matrix.size
+        
+        if occupancy < 0.1:  # Less than 10% occupied
+            return self.sparse_convolution(matrix, n)
+        else:
+            return self.convolution(matrix, n)  # Original dense version
 
     def neigboor_mask(self, applicable, n):
         # Create a true independent copy before passing to convolution
-        neighbors = self.convolution(applicable.copy(), n)
+        neighbors = self.adaptive_convolution(applicable.copy(), n)
         return np.array(neighbors, dtype=bool)
     
 
@@ -136,37 +189,40 @@ class CellGrid:
         
         
     
-    def validate_rule(self,positive_genes,negative_genes,neighboor_grid,potential_cell,n_neighboor=None):
+    def validate_rule(self, positive_genes, negative_genes, 
+                 neighboor_grid, potential_cell, n_neighboor=None):
         """ Check If a rule return true
         
         positive_genes = numpy array or gene that must be present e.g [1] when the second gene need to be there
         negatvie_genes = numpy array or gene that must be absent e.g [2,3] when the third and fourth gene must be absent
 
         """
-
-        n_positive = len(positive_genes)
-        if n_positive != 0:
-            positive_gene_validation = np.sum(self.gene_content[:,:,positive_genes],axis=-1) == n_positive
+        X, Y = self.gene_content.shape[:2]
+        
+        # Positive genes: use np.all (faster)
+        if len(positive_genes) > 0:
+            positive_gene_validation = np.all(
+                self.gene_content[:, :, positive_genes], axis=-1
+            )
         else:
-            positive_gene_validation = np.ones_like(self.gene_content[:,:,0],dtype=bool)
-
-        n_negative = len(negative_genes)
-        if n_negative != 0:
-
-            negative_gene_validation = np.sum(1-self.gene_content[:,:,negative_genes],axis=-1) == n_negative
+            positive_gene_validation = np.ones((X, Y), dtype=bool)
+        
+        # Negative genes: check if ANY are present, then invert
+        if len(negative_genes) > 0:
+            has_negative = np.any(
+                self.gene_content[:, :, negative_genes], axis=-1
+            )
+            negative_gene_validation = ~has_negative
         else:
-            negative_gene_validation = np.ones_like(self.gene_content[:,:,0],dtype=bool)
-
-
-        gene_validation = positive_gene_validation * negative_gene_validation
-
-        if n_neighboor != None:
-            #Either fixed number of neighboors
-            gene_validation = gene_validation * (n_neighboor == neighboor_grid)
+            negative_gene_validation = np.ones((X, Y), dtype=bool)
+        
+        # Use bitwise AND (faster than multiplication)
+        gene_validation = positive_gene_validation & negative_gene_validation
+        
+        if n_neighboor is not None:
+            gene_validation = gene_validation & (n_neighboor == neighboor_grid)
         else:
-            #Or all cell and their neigbboors
-            #propagate on all cell adjacent to alive cell
-            gene_validation =  gene_validation * potential_cell
+            gene_validation = gene_validation & potential_cell
         
         return gene_validation
 
@@ -177,7 +233,13 @@ class CellGrid:
         potential_cell = self.inclusive_neigboor_mask(self.cell_status.copy(),1) #Cells and their one radius neigboor
         new_genes = np.zeros_like(self.gene_content)
 
+        expressed_genes = np.any(self.gene_content, axis=(0, 1))  # shape (G,) — one bool per gene
+
         for rule in self.genes_rules:
+            # If any required positive gene is absent from the entire grid,
+            # validate_rule can never return True anywhere — skip it entirely
+            if len(rule.positive_genes) > 0 and not np.all(expressed_genes[rule.positive_genes]):
+                continue
             applicable = self.validate_rule(rule.positive_genes,rule.negative_genes,
                                            neighboor_grid=neighboor_grid,
                                            potential_cell=potential_cell,

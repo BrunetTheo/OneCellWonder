@@ -3,8 +3,8 @@ import math
 from scipy.signal import convolve2d
 from functools import lru_cache
 
-#@lru_cache(maxsize=None)  # unlimited cache
-def makeMask(iseven,n):
+@lru_cache(maxsize=None)  # unlimited cache
+def makeMask(iseven,n,include_center=False):
     """
     Create a mask of size n
     
@@ -15,6 +15,8 @@ def makeMask(iseven,n):
     modd = np.array([[0,1,0],[1,0,1],[1,1,1]])
     mask = np.zeros((n*2+1,n*2+1))
     mask[n,n] = 1
+
+
     for i in range(n):
 
         center = meven if iseven else modd
@@ -29,4 +31,7 @@ def makeMask(iseven,n):
         mask = np.where(mask_even, out_even, out_odd) 
     mask = mask>0
     mask[n,n] = 0 #Remove the original cell
+
+    if include_center:  #added this
+        mask[n, n] = 1
     return mask
