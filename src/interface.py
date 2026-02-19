@@ -3,7 +3,7 @@ import numpy as np
 import math
 import random
 import copy
-windows_size = (800, 800)
+windows_size = (150, 150)
 class Interface:
     def polygon_points(self ,center , size):
         height = size
