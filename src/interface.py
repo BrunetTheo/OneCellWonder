@@ -16,37 +16,27 @@ class Interface:
         n5 = (center[0] - 2 * height, center[1])
         return [n0, n1, n2, n3, n4, n5]
 
-    def gene_to_color(self, i, j,cell_status,gene_content):
+    def gene_to_color(self, i, j, cell_status, gene_content):
         """Convert gene content to a color. Cache results for consistency."""
-        # Check if cell is alive
-        cell_status_ij = cell_status[i, j]
-        if cell_status_ij == 0:
-            return (0, 0, 0)  # Black for dead cells
-        
-        # Get gene content for alive cells
-        gene_content = gene_content[i, j]
-        
-        # Convert gene array to a tuple so it can be used as a dictionary key
-        gene_tuple = tuple(gene_content)
-        
-        # Check if we've already assigned a color to this gene pattern
+        if cell_status[i, j] == 0:
+            return (0, 0, 0)
+
+        # gene_content is now a (G, X, Y) array — extract gene vector for cell (i,j)
+        gene_tuple = tuple(gene_content[:, i, j].tolist())
+
         if gene_tuple in self.gene_color_cache:
             return self.gene_color_cache[gene_tuple]
-        
-        # Generate a new color for this gene pattern
-        # Option 1: Use predefined color list (cycles through if needed)
+
         if self.use_predefined_colors and self.color_list:
-            color_index = len(self.gene_color_cache) % len(self.color_list)
-            color = self.color_list[color_index]
+            color = self.color_list[len(self.gene_color_cache) % len(self.color_list)]
         else:
-            # Option 2: Generate random color
+            import random
             color = (
                 random.randint(50, 255),
                 random.randint(50, 255),
                 random.randint(50, 255)
             )
-        
-        # Cache the color for this gene pattern
+
         self.gene_color_cache[gene_tuple] = color
         return color
 
@@ -98,52 +88,42 @@ class Interface:
         
         return None
 
+
     def draw_tooltip(self, cell_coords):
-        """Draw a tooltip showing the first 10 gene contents"""
+        """Draw a tooltip showing expressed genes for the hovered cell."""
         if cell_coords is None:
             return
-        
+
         i, j = cell_coords
-        gene_content = self.matrix_history[self.iteration_counter-1][1][i, j]
-        neighboors = self.matrix_history[self.iteration_counter-1][2][i, j]
-        
-        # Get first 10 genes
-        genes_to_show = len(gene_content)
-        
-        # Create tooltip background
-        tooltip_width = 180
-        tooltip_height = 30 + genes_to_show * 25
-        mouse_pos = pygame.mouse.get_pos()
-        
-        # Position tooltip near mouse, but keep it on screen
+        cell_status_hist, gene_content_hist, neighbors_hist = self.matrix_history[self.iteration_counter - 1]
+
+        # gene_content is now (G, X, Y) — extract column for cell (i,j)
+        gene_vector = gene_content_hist[:, i, j]
+        neighboors  = neighbors_hist[i, j]
+
+        expressed = [(g, int(v)) for g, v in enumerate(gene_vector) if v != 0]
+        genes_to_show  = len(expressed)
+        tooltip_width  = 180
+        tooltip_height = 30 + max(genes_to_show, 1) * 25
+        mouse_pos      = pygame.mouse.get_pos()
+
         tooltip_x = mouse_pos[0] + 15
         tooltip_y = mouse_pos[1] + 15
-        
-        if tooltip_x + tooltip_width > self.windows_size[0]:
-            tooltip_x = mouse_pos[0] - tooltip_width - 15
-        if tooltip_y + tooltip_height > self.windows_size[1]:
-            tooltip_y = mouse_pos[1] - tooltip_height - 15
-        
-        # Draw semi-transparent background
+        if tooltip_x + tooltip_width  > self.windows_size[0]: tooltip_x = mouse_pos[0] - tooltip_width  - 15
+        if tooltip_y + tooltip_height > self.windows_size[1]: tooltip_y = mouse_pos[1] - tooltip_height - 15
+
         tooltip_surface = pygame.Surface((tooltip_width, tooltip_height))
         tooltip_surface.set_alpha(230)
         tooltip_surface.fill((40, 40, 40))
-        pygame.draw.rect(tooltip_surface, (255, 255, 255), 
-                        tooltip_surface.get_rect(), 2)
+        pygame.draw.rect(tooltip_surface, (255, 255, 255), tooltip_surface.get_rect(), 2)
         self.screen.blit(tooltip_surface, (tooltip_x, tooltip_y))
-        
-        # Draw title
-        title_text = self.small_font.render(f'Cell ({i}, {j} n= {neighboors}):', 
-                                           True, (255, 255, 100))
+
+        title_text = self.small_font.render(f'Cell ({i}, {j} n={neighboors}):', True, (255, 255, 100))
         self.screen.blit(title_text, (tooltip_x + 10, tooltip_y + 5))
-        
-        # Draw gene values
-        for idx in range(genes_to_show):
-            gene_text = self.small_font.render(
-                f'Gene {idx}: {int(gene_content[idx])}', 
-                True, (255, 255, 255))
-            self.screen.blit(gene_text, 
-                           (tooltip_x + 10, tooltip_y + 30 + idx * 25))
+
+        for idx, (g, val) in enumerate(expressed):
+            gene_text = self.small_font.render(f'Gene {g}: {val}', True, (255, 255, 255))
+            self.screen.blit(gene_text, (tooltip_x + 10, tooltip_y + 30 + idx * 25))
 
     def draw_polygon(self,center,color):
         pygame.draw.polygon(
@@ -179,7 +159,7 @@ class Interface:
                     center[1] -= width
                 
                 # Get color based on cell status and gene content
-                cell_color = self.gene_to_color(i, j,self.matrix_history[self.iteration_counter-1][0],self.matrix_history[self.iteration_counter-1][1])
+                cell_color = self.gene_to_color(i, j,self.matrix_history[self.iteration_counter-1][0],self.matrix_history[self.iteration_counter-1][1]) 
                 self.draw_polygon([center[0], center[1]], cell_color)
                 
             center[0] = initial_center[0]
@@ -201,10 +181,15 @@ class Interface:
             pygame.display.flip()
         except pygame.error:
             pass  # Running with
+
     def save_status(self):
-        return [self.controler.cellGrid.getCellStatus(),
-                self.controler.cellGrid.gene_content,
-                self.controler.cellGrid.get_neighbors()]
+        # gene_content is already a dict {g: 2D array} — store as-is.
+        # No format change needed; draw_tooltip and gene_to_color read it correctly.
+        return [
+            self.controler.cellGrid.getCellStatus(),
+            self.controler.cellGrid.gene_content,   # dict of 2D arrays
+            self.controler.cellGrid.get_neighbors()
+        ]
 
     def __init__(self,windows_size, controler):
         self.controler=controler

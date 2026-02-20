@@ -12,7 +12,7 @@ except ImportError:
 
 
 # ---------------------------------------------------------------------------
-# Mask construction
+# Mask construction — cached as int8 to avoid per-call astype copies
 # ---------------------------------------------------------------------------
 
 @lru_cache(maxsize=None)
@@ -35,6 +35,13 @@ def makeMask(iseven, n, include_center=False):
     return mask
 
 
+@lru_cache(maxsize=None)
+def makeMask_int8(iseven, n, include_center=False):
+    """int8 version of makeMask. Gene values are binary so max accumulation
+    is the mask sum (7–37 for n=1–3), well within int8 range (max 127)."""
+    return makeMask(iseven, n, include_center).astype(np.int8)
+
+
 # ---------------------------------------------------------------------------
 # Dense convolution
 # ---------------------------------------------------------------------------
@@ -55,6 +62,11 @@ def dense_convolution(matrix, n, X, Y, include_center=True):
 
 @njit
 def _sparse_kernel(matrix, result, active_coords, mask_even, mask_odd, X, Y, n):
+    """
+    All arrays are int8. Gene values are binary so accumulation stays in range.
+    matrix, result  : int8
+    active_coords   : int32 (np.argwhere default) — no copy needed
+    """
     for idx in range(len(active_coords)):
         x   = active_coords[idx, 0]
         y   = active_coords[idx, 1]
@@ -76,8 +88,6 @@ def sparse_convolution(matrix, n, X, Y, include_center=True, candidate_coords=No
     """
     Sparse hex-grid convolution. Only processes non-zero cells.
 
-    Parameters
-    ----------
     candidate_coords : np.ndarray shape (N, 2), optional
         Pre-computed superset of active coordinates (e.g. alive_coords).
         Active coords are derived by filtering candidates where matrix != 0,
@@ -91,22 +101,21 @@ def sparse_convolution(matrix, n, X, Y, include_center=True, candidate_coords=No
         active_coords = np.argwhere(matrix != 0)
 
     if len(active_coords) == 0:
-        return np.zeros_like(matrix, dtype=int)
+        return np.zeros((X, Y), dtype=np.int8)
 
     iseven    = n % 2 == 0
-    mask_even = makeMask(iseven,     n, include_center=include_center).astype(np.int64)
-    mask_odd  = makeMask(not iseven, n, include_center=include_center).astype(np.int64)
+    mask_even = makeMask_int8(iseven,     n, include_center=include_center)
+    mask_odd  = makeMask_int8(not iseven, n, include_center=include_center)
 
     if NUMBA_AVAILABLE:
-        result = np.zeros((X, Y), dtype=np.int64)
+        result = np.zeros((X, Y), dtype=np.int8)
         return _sparse_kernel(
-            matrix.astype(np.int64), result,
-            active_coords.astype(np.int64),
+            matrix, result, active_coords,
             mask_even, mask_odd,
             np.int64(X), np.int64(Y), np.int64(n),
         )
     else:
-        result = np.zeros_like(matrix, dtype=int)
+        result = np.zeros((X, Y), dtype=np.int8)
         for x, y in active_coords:
             mask = mask_even if y % 2 == 0 else mask_odd
             x_start = max(0, x - n);  x_end = min(X, x + n + 1)
@@ -131,10 +140,15 @@ def adaptive_convolution(matrix, n, X, Y, include_center=True, threshold=0.1,
     candidate_coords is passed through to sparse_convolution to avoid
     redundant argwhere calls in the caller.
     """
-    occupancy = np.count_nonzero(matrix) / matrix.size
-    if occupancy < threshold:
+    # If candidate_coords are provided, we already know the active cells —
+    # skip the occupancy scan and go straight to sparse.
+    if candidate_coords is not None:
         return sparse_convolution(matrix, n, X, Y,
                                   include_center=include_center,
                                   candidate_coords=candidate_coords)
+    occupancy = np.count_nonzero(matrix) / matrix.size
+    if occupancy < threshold:
+        return sparse_convolution(matrix, n, X, Y,
+                                  include_center=include_center)
     else:
         return dense_convolution(matrix, n, X, Y, include_center=include_center)

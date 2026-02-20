@@ -1,11 +1,9 @@
 import numpy as np
 from dataclasses import dataclass
-from scipy.signal import convolve2d
 from src.parse_rules import AndRule
 from src.parse_rules import *
 from src.parse_cells import *
 import src.utils as utils
-import copy
 
 
 @dataclass
@@ -34,8 +32,11 @@ class CellGrid:
         self.genes_rules = genes_rules
         self.alive_rules = alive_rules
 
-        self.cell_status = np.zeros((X, Y), dtype=int)
-        self.gene_content = np.zeros((X, Y, G), dtype=int)
+        self.cell_status = np.zeros((X, Y), dtype=np.int8)
+
+        # gene_content: (G, X, Y) int8 array.
+        # Gene g is at gene_content[g] — a 2D (X, Y) slice.
+        self.gene_content = np.zeros((G, X, Y), dtype=np.int8)
 
         if gene_names is None:
             self.gene_names = [f"gene_{i}" for i in range(G)]
@@ -50,7 +51,7 @@ class CellGrid:
                 if self._in_bounds(x, y):
                     self.cell_status[x, y] = 1
                 for gene in cell.active_genes:
-                    self.gene_content[x, y, gene] = 1
+                    self.gene_content[gene, x, y] = 1
 
         self.propagate_genes()
 
@@ -74,15 +75,9 @@ class CellGrid:
         )
 
     def neigboor_mask(self, applicable, n, candidate_coords=None):
-        """
-        Boolean mask: True where at least one neighbour within n is nonzero.
-
-        candidate_coords : np.ndarray shape (N, 2), optional
-            Superset of active coordinates in `applicable`. Passed through to
-            sparse_convolution to avoid a redundant argwhere scan.
-        """
+        """Boolean mask: True where at least one neighbour within n is nonzero."""
         neighbors = utils.adaptive_convolution(
-            applicable.copy(), n, self.X, self.Y,
+            applicable, n, self.X, self.Y,
             include_center=True,
             candidate_coords=candidate_coords
         )
@@ -99,31 +94,26 @@ class CellGrid:
 
     def validate_rule(self, positive_genes, negative_genes,
                       neighboor_grid, potential_cell, n_neighboor=None):
-        X, Y = self.gene_content.shape[:2]
-
+        """
+        Returns a (X, Y) boolean mask of cells where the rule applies.
+        gene_content[g] is a contiguous (X, Y) slice — same cost as dict lookup.
+        """
         if len(positive_genes) > 0:
-            positive_gene_validation = np.all(
-                self.gene_content[:, :, positive_genes], axis=-1
-            )
+            validation = self.gene_content[positive_genes[0]].astype(bool)
+            for g in positive_genes[1:]:
+                validation &= self.gene_content[g].astype(bool)
         else:
-            positive_gene_validation = np.ones((X, Y), dtype=bool)
+            validation = np.ones((self.X, self.Y), dtype=bool)
 
-        if len(negative_genes) > 0:
-            has_negative = np.any(
-                self.gene_content[:, :, negative_genes], axis=-1
-            )
-            negative_gene_validation = ~has_negative
-        else:
-            negative_gene_validation = np.ones((X, Y), dtype=bool)
-
-        gene_validation = positive_gene_validation & negative_gene_validation
+        for g in negative_genes:
+            validation &= ~self.gene_content[g].astype(bool)
 
         if n_neighboor is not None:
-            gene_validation = gene_validation & (n_neighboor == neighboor_grid)
+            validation &= (n_neighboor == neighboor_grid)
         else:
-            gene_validation = gene_validation & potential_cell
+            validation &= potential_cell.astype(bool)
 
-        return gene_validation
+        return validation
 
     # ------------------------------------------------------------------
     # Gene propagation
@@ -131,22 +121,22 @@ class CellGrid:
 
     def propagate_genes(self):
         # Mask neighbour count by cell_status: dead cells report 0 neighbours.
-        # Without this, a dead cell with the right number of alive neighbours
-        # could incorrectly match a rule with n_neighboor specified.
-        neighboor_grid  = self.get_neighbors() * self.cell_status
-        new_genes       = np.zeros_like(self.gene_content)
-        expressed_genes = np.any(self.gene_content, axis=(0, 1))
+        neighboor_grid = self.get_neighbors() * self.cell_status
 
-        # Computed ONCE — applicable is always a subset of cell_status,
-        # so alive_coords is a valid superset for all inclusive_neigboor_mask calls below.
+        # expressed_genes: one vectorised reduction over (G, X, Y).
+        expressed_genes = set(np.where(self.gene_content.any(axis=(1, 2)))[0])
+
+        # Computed ONCE — applicable is always a subset of cell_status.
         alive_coords = np.argwhere(self.cell_status != 0)
 
+        new_genes = np.zeros((self.G, self.X, self.Y), dtype=np.int8)
+
         for rule in self.genes_rules:
-            if len(rule.positive_genes) > 0 and not np.all(expressed_genes[rule.positive_genes]):
+            if len(rule.positive_genes) > 0 and not all(
+                g in expressed_genes for g in rule.positive_genes
+            ):
                 continue
 
-            # For gene rules, only alive cells can express genes.
-            # potential_cell (alive + neighbours) is only correct for create_alive_cell.
             applicable = self.validate_rule(
                 rule.positive_genes, rule.negative_genes,
                 neighboor_grid=neighboor_grid,
@@ -155,13 +145,11 @@ class CellGrid:
             )
 
             extent = self.inclusive_neigboor_mask(
-                np.array(applicable, dtype=int), rule.propagation,
-                candidate_coords=alive_coords  # avoids argwhere inside sparse_convolution
+                applicable.astype(np.int8), rule.propagation,
+                candidate_coords=alive_coords
             )
 
-            new_genes[:, :, rule.active_gene] = (
-                new_genes[:, :, rule.active_gene] | extent
-            )
+            new_genes[rule.active_gene] |= extent
 
         self.gene_content = new_genes
 
@@ -192,8 +180,8 @@ class CellGrid:
                 n_neighboor=rule.n_neighboor
             )
 
-        new_alive = new_alive * (1 - self.cell_status)
-        self.cell_status = self.cell_status | new_alive
+        new_alive = new_alive & ~self.cell_status.astype(bool)
+        self.cell_status = (self.cell_status | new_alive).astype(np.int8)
 
     def update_grid(self):
         self.create_alive_cell()
