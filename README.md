@@ -7,7 +7,7 @@ mamba create -n  one_cell_wonder conda-forge::pygame numpy scipy
 
 
 # Example
-[Hand](gifs/limb_patterning.gif)
+![Hand](gifs/limb_patterning.gif)
 
 # System and Engine Overview
 
